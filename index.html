@@ -1,10 +1,32 @@
 <!doctype html>
-<html lang="en">
+<html
+  lang="en"
+  class="preload bg-white text-slate-900 dark:bg-slate-950 dark:text-slate-50"
+>
   <head>
     <meta charset="UTF-8" />
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>books</title>
+
+    <script>
+      (function () {
+        const savedTheme = localStorage.getItem('books-theme');
+        const prefersDark = window.matchMedia(
+          '(prefers-color-scheme: dark)'
+        ).matches;
+        const isDarkMode =
+          savedTheme === 'dark' || (!savedTheme && prefersDark);
+
+        document.documentElement.classList.toggle('dark', isDarkMode);
+
+        window.addEventListener('DOMContentLoaded', () => {
+          setTimeout(() => {
+            document.documentElement.classList.remove('preload');
+          }, 1);
+        });
+      })();
+    </script>
   </head>
   <body>
     <div id="root"></div>

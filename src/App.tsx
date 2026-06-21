@@ -1,16 +1,13 @@
-function App() {
+import AppRouter from '@/router/Router';
+import { ProjectThemeProvider } from '@/providers/ProjectThemeProvider';
+import { AppModeProvider } from '@/providers/AppModeProvider';
+
+export default function App() {
   return (
-    <div className="flex min-h-screen items-center justify-center bg-slate-900 text-white">
-      <div className="text-center">
-        <h1 className="text-4xl font-bold text-sky-400">
-          Tailwind CSS работает!
-        </h1>
-        <p className="mt-2 text-slate-400">
-          Проект на Vite + TypeScript готов к верстке.
-        </p>
-      </div>
-    </div>
+    <ProjectThemeProvider>
+      <AppModeProvider>
+        <AppRouter />
+      </AppModeProvider>
+    </ProjectThemeProvider>
   );
 }
-
-export default App;

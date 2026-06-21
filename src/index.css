@@ -1,1 +1,29 @@
 @import 'tailwindcss';
+
+@variant dark (&:where(.dark, .dark *));
+
+html {
+  scrollbar-gutter: stable;
+}
+html,
+body,
+#root {
+  height: 100%;
+  margin: 0;
+  padding: 0;
+}
+*,
+*::before,
+*::after {
+  transition-property:
+    color, background-color, border-color, text-decoration-color;
+  transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
+  transition-duration: 300ms;
+}
+.preload,
+.preload *,
+.preload *::before,
+.preload *::after {
+  transition: none !important;
+  animation: none !important;
+}
