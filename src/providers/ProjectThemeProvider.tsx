@@ -1,12 +1,6 @@
-import {
-  createContext,
-  useContext,
-  useEffect,
-  useState,
-  type PropsWithChildren,
-} from 'react';
-
-type Theme = 'light' | 'dark' | 'system';
+import { createContext, useContext, useEffect, useState, type PropsWithChildren } from 'react';
+import { THEME_KEY, DEFAULT_THEME, THEMES } from '@/constants/theme';
+import type { Theme } from '@/types/theme';
 
 interface ThemeContextType {
   theme: Theme;
@@ -15,53 +9,47 @@ interface ThemeContextType {
 }
 
 const ThemeContext = createContext<ThemeContextType | undefined>(undefined);
-const themeNameInLocalStorage = 'books-theme';
 
 export function ProjectThemeProvider({ children }: PropsWithChildren) {
   const [theme, setThemeState] = useState<Theme>(() => {
-    const savedTheme = localStorage.getItem(themeNameInLocalStorage) as Theme;
-    return savedTheme || 'system';
+    const saved = localStorage.getItem(THEME_KEY);
+    return (saved as Theme) || DEFAULT_THEME;
   });
 
-  const [systemPrefersDark, setSystemPrefersDark] = useState(
-    () => window.matchMedia('(prefers-color-scheme: dark)').matches
+  const [systemPrefersDark, setSystemPrefersDark] = useState(() => 
+    window.matchMedia('(prefers-color-scheme: dark)').matches
   );
 
-  const isDark = theme === 'system' ? systemPrefersDark : theme === 'dark';
+  const isDark = theme === THEMES.SYSTEM ? systemPrefersDark : theme === THEMES.DARK;
 
-  // Effect 1: Monitor the system theme in real time
+  // 1. Listen for real-time system theme changes
   useEffect(() => {
     const mediaQuery = window.matchMedia('(prefers-color-scheme: dark)');
-    const handleChange = (e: MediaQueryListEvent) =>
-      setSystemPrefersDark(e.matches);
-
+    const handleChange = (e: MediaQueryListEvent) => setSystemPrefersDark(e.matches);
+    
     mediaQuery.addEventListener('change', handleChange);
     return () => mediaQuery.removeEventListener('change', handleChange);
   }, []);
 
-  // Effect 2: Synchronize with DOM and LocalStorage on any change
+  // 2. Synchronize dark mode state with HTML document element
   useEffect(() => {
-    const root = window.document.documentElement;
-    root.classList.toggle('dark', isDark);
+    document.documentElement.classList.toggle(THEMES.DARK, isDark);
+  }, [isDark]);
 
-    if (theme === 'system') {
-      localStorage.removeItem(themeNameInLocalStorage);
+  // 3. Persist selected theme to LocalStorage
+  useEffect(() => {
+    if (theme === THEMES.SYSTEM) {
+      localStorage.removeItem(THEME_KEY);
     } else {
-      localStorage.setItem(themeNameInLocalStorage, theme);
+      localStorage.setItem(THEME_KEY, theme);
     }
-  }, [theme, isDark]);
+  }, [theme]);
 
-  // Effect 3: Synchronize the theme between open browser tabs
+  // 4. Synchronize theme state across multiple open browser tabs
   useEffect(() => {
     const handleStorageChange = (e: StorageEvent) => {
-      if (e.key === themeNameInLocalStorage) {
-        const newTheme = e.newValue as Theme;
-
-        if (!newTheme) {
-          setThemeState('system');
-        } else {
-          setThemeState(newTheme);
-        }
+      if (e.key === THEME_KEY) {
+        setThemeState((e.newValue as Theme) || DEFAULT_THEME);
       }
     };
 
@@ -70,6 +58,7 @@ export function ProjectThemeProvider({ children }: PropsWithChildren) {
   }, []);
 
   const setTheme = (newTheme: Theme) => {
+    if (newTheme === theme) return;
     setThemeState(newTheme);
   };
 
@@ -82,10 +71,8 @@ export function ProjectThemeProvider({ children }: PropsWithChildren) {
 
 export function useProjectTheme() {
   const context = useContext(ThemeContext);
-  if (context === undefined) {
-    throw new Error(
-      'useProjectTheme must be used within a ProjectThemeProvider'
-    );
+  if (!context) {
+    throw new Error('useProjectTheme must be used within a ProjectThemeProvider');
   }
   return context;
 }

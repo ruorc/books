@@ -1,13 +1,13 @@
 import { Sun, Moon, Monitor } from 'lucide-react';
+import { THEME_LABELS, THEMES } from '@/constants/theme';
 import { useProjectTheme } from '@/providers/ProjectThemeProvider';
-import { SegmentedControl, type SegmentedOption } from './SegmentedControl';
+import { SegmentedControl } from './SegmentedControl';
 
-type Theme = 'light' | 'dark' | 'system';
-
-const themeOptions: readonly SegmentedOption<Theme>[] = [
-  { id: 'light', label: 'light', icon: Sun },
-  { id: 'dark', label: 'dark', icon: Moon },
-  { id: 'system', label: 'system', icon: Monitor },
+// Options list bound to runtime THEMES constants to eliminate magic strings
+const themeOptions = [
+  { id: THEMES.LIGHT, label: THEME_LABELS[THEMES.LIGHT], icon: Sun },
+  { id: THEMES.DARK, label: THEME_LABELS[THEMES.DARK], icon: Moon },
+  { id: THEMES.SYSTEM, label: THEME_LABELS[THEMES.SYSTEM], icon: Monitor },
 ] as const;
 
 export function ThemeSelector() {
@@ -15,6 +15,7 @@ export function ThemeSelector() {
 
   return (
     <SegmentedControl
+      id="app-theme" // Unique scope ID isolates Framer Motion animations from ModeSelector
       options={themeOptions}
       value={theme}
       onChange={setTheme}

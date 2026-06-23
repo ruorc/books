@@ -2,16 +2,20 @@ import { ShieldAlert } from 'lucide-react';
 
 export function AboutSecurity() {
   return (
-    <section className="p-4 rounded-xl bg-red-500/5 border border-red-500/10 flex gap-3 items-start">
+    <section className="p-4 rounded-xl bg-red-500/5 border border-red-500/10 flex gap-3 items-start transition-colors duration-200">
+      {/* Alert icon with fixed sizing to prevent squeezing on mobile screens */}
       <ShieldAlert className="h-5 w-5 text-red-500 shrink-0 mt-0.5" />
+      
+      {/* Informative text content explaining env variables safety */}
       <div className="text-xs text-slate-600 dark:text-slate-400 space-y-1">
-        <h4 className="font-bold text-red-600/90 dark:text-red-400/90">
+        {/* Improved color contrast for dark mode explicitly using responsive states */}
+        <h4 className="font-bold text-red-600 dark:text-red-400">
           API Security Advisory
         </h4>
         <p>
           Your private MockAPI token is safely excluded from source control. All
           environment variables are filtered by the{' '}
-          <span className="font-mono">.gitignore</span> pattern and will never
+          <span className="font-mono bg-slate-100 dark:bg-slate-800 px-1 py-0.5 rounded">.gitignore</span> pattern and will never
           be pushed to public GitHub repositories.
         </p>
       </div>

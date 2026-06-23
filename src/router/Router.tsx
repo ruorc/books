@@ -1,24 +1,18 @@
-import { lazy, Suspense } from 'react';
+import { lazy } from 'react';
 import { createBrowserRouter, RouterProvider } from 'react-router-dom';
 import Layout from '@/layout/Layout';
-import PageLoader from '@/components/PageLoader';
 import { ROUTES } from './routes';
 
+// Lazy loading views to split the bundle and optimize initial load time
 const AboutPage = lazy(() => import('@/views/AboutPage/AboutPage'));
 const BooksPage = lazy(() => import('@/views/BooksPage/BooksPage'));
-const BookDetailPage = lazy(
-  () => import('@/views/BookDetailPage/BookDetailPage')
-);
+const BookDetailPage = lazy(() => import('@/views/BookDetailPage/BookDetailPage'));
 const NotFoundPage = lazy(() => import('@/views/NotFoundPage'));
 
 const router = createBrowserRouter([
   {
     path: '/',
-    element: (
-      <Suspense fallback={<PageLoader />}>
-        <Layout />
-      </Suspense>
-    ),
+    element: <Layout />, // Header and Footer will now stay persistent across navigation
     children: [
       {
         path: ROUTES.HOME,

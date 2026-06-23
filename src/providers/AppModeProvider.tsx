@@ -1,11 +1,6 @@
-import {
-  createContext,
-  useContext,
-  useEffect,
-  useState,
-  type PropsWithChildren,
-} from 'react';
-import type { AppMode } from '@/components/ModeSelector';
+import { createContext, useContext, useEffect, useState, useRef, type PropsWithChildren } from 'react';
+import { MODE_KEY, DEFAULT_MODE, MODE_SWITCH_DELAY } from '@/constants/mode';
+import type { AppMode } from '@/types/mode';
 
 interface AppModeContextType {
   mode: AppMode;
@@ -14,27 +9,42 @@ interface AppModeContextType {
 }
 
 const AppModeContext = createContext<AppModeContextType | undefined>(undefined);
-const modeNameInLocalStorage = 'books-app-mode';
 
 export function AppModeProvider({ children }: PropsWithChildren) {
   const [mode, setModeState] = useState<AppMode>(() => {
-    const savedMode = localStorage.getItem(modeNameInLocalStorage) as AppMode;
-    return savedMode || 'function';
+    const savedMode = localStorage.getItem(MODE_KEY);
+    return (savedMode as AppMode) || DEFAULT_MODE;
   });
 
   const [isModeLoading, setIsModeLoading] = useState(false);
+  const timeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
+  // 1. Persist the current mode to LocalStorage whenever it changes
   useEffect(() => {
-    localStorage.setItem(modeNameInLocalStorage, mode);
+    localStorage.setItem(MODE_KEY, mode);
   }, [mode]);
 
+  // 2. Clean up any pending timeout when the component unmounts
+  useEffect(() => {
+    return () => {
+      if (timeoutRef.current) clearTimeout(timeoutRef.current);
+    };
+  }, []);
+
   const setMode = (newMode: AppMode) => {
+    if (newMode === mode || isModeLoading) return;
+
+    if (timeoutRef.current) {
+      clearTimeout(timeoutRef.current);
+    }
+
     setIsModeLoading(true);
 
-    setTimeout(() => {
+    timeoutRef.current = setTimeout(() => {
       setModeState(newMode);
       setIsModeLoading(false);
-    }, 400);
+      timeoutRef.current = null;
+    }, MODE_SWITCH_DELAY);
   };
 
   return (

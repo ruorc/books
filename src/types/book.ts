@@ -2,8 +2,10 @@ export interface Book {
   id: string;
   title: string;
   author: string;
-  cover: string;
-  year: string;
+  yearOfPublication: string;
   description: string;
+  coverImage: string;
+  isFavorite: boolean;
   createdAt: string;
+  updatedAt: string;
 }
