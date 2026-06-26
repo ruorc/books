@@ -1,5 +1,5 @@
 import { MOCKAPI_CONFIG } from '@/config/mockapi';
-import { HttpBooksService } from './HttpBooksService';
+import { MockApiBooksService } from './MockApiBooksService'; 
 
-// Initialize the universal HTTP service with MockAPI specific configuration parameters
-export const booksService = new HttpBooksService(MOCKAPI_CONFIG.ENDPOINTS.BOOKS);
+// Initialize the specialized MockAPI child service with specific project configuration endpoints parameters
+export const booksService = new MockApiBooksService(MOCKAPI_CONFIG.ENDPOINTS.BOOKS);

@@ -1,59 +1,230 @@
-import { useEffect, useState, useMemo } from 'react';
+import { useEffect, useMemo, useCallback, useReducer } from 'react';
 import { booksService } from '@/services/booksDataServiceMockApi';
+import { BOOKS_PER_PAGE_LIMIT } from '@/constants/ui';
 import { useConfirm } from '@/providers/ConfirmProvider';
 import { useSnack } from '@/providers/SnackProvider';
 import { SNACK_TYPES } from '@/constants/snack';
 import type { Book } from '@/types/book';
+import type { QueryFilters } from '@/types/api';
 
 interface UseBooksCatalogProps {
   search: string;
   favOnly: boolean;
+  selectedAuthor?: string;
+  selectedYear?: string;
 }
 
-export function useBooksCatalog({ search, favOnly }: UseBooksCatalogProps) {
-  const [booksMap, setBooksMap] = useState<Map<string, Book>>(() => new Map());
-  const [isLoading, setIsLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
+interface CatalogState {
+  booksMap: Map<string, Book>;
+  isLoading: boolean;
+  isFetchingNextPage: boolean;
+  error: string | null;
+  page: number;
+  hasMore: boolean;
+}
+
+type CatalogAction =
+  | { type: 'FETCH_INIT_START' }
+  | { type: 'FETCH_NEXT_START' }
+  | {
+      type: 'FETCH_SUCCESS';
+      payload: { remoteBooks: Book[]; isInitial: boolean };
+    }
+  | { type: 'FETCH_FAILURE'; payload: string }
+  | { type: 'NEXT_PAGE' }
+  | { type: 'DELETE_BOOK'; payload: string }
+  | { type: 'TOGGLE_FAVORITE'; payload: { id: string; isFavorite: boolean } };
+
+const initialState: CatalogState = {
+  booksMap: new Map(),
+  isLoading: true,
+  isFetchingNextPage: false,
+  error: null,
+  page: 1,
+  hasMore: true,
+};
+
+function catalogReducer(
+  state: CatalogState,
+  action: CatalogAction
+): CatalogState {
+  switch (action.type) {
+    case 'FETCH_INIT_START':
+      return {
+        ...state,
+        isLoading: true,
+        error: null,
+        page: 1,
+        hasMore: true,
+        booksMap: new Map(),
+      };
+    case 'FETCH_NEXT_START':
+      return {
+        ...state,
+        isFetchingNextPage: true,
+        error: null,
+      };
+    case 'FETCH_SUCCESS': {
+      const { remoteBooks, isInitial } = action.payload;
+      const nextMap = isInitial ? new Map() : new Map(state.booksMap);
+      remoteBooks.forEach((book) => nextMap.set(book.id, book));
+
+      return {
+        ...state,
+        booksMap: nextMap,
+        isLoading: false,
+        isFetchingNextPage: false,
+        hasMore: remoteBooks.length === BOOKS_PER_PAGE_LIMIT,
+      };
+    }
+    case 'FETCH_FAILURE':
+      return {
+        ...state,
+        isLoading: false,
+        isFetchingNextPage: false,
+        error: action.payload,
+      };
+    case 'NEXT_PAGE':
+      return {
+        ...state,
+        page: state.page + 1,
+      };
+    case 'DELETE_BOOK': {
+      const nextMap = new Map(state.booksMap);
+      nextMap.delete(action.payload);
+      return { ...state, booksMap: nextMap };
+    }
+    case 'TOGGLE_FAVORITE': {
+      const { id, isFavorite } = action.payload;
+      const nextMap = new Map(state.booksMap);
+      const target = nextMap.get(id);
+      if (target) {
+        nextMap.set(id, { ...target, isFavorite });
+      }
+      return { ...state, booksMap: nextMap };
+    }
+    default:
+      return state;
+  }
+}
+
+export function useBooksCatalog({
+  search,
+  favOnly,
+  selectedAuthor,
+  selectedYear,
+}: UseBooksCatalogProps) {
+  const [state, dispatch] = useReducer(catalogReducer, initialState);
 
   const { showConfirm } = useConfirm();
   const { showSnack } = useSnack();
 
-  // 1. Fetch entire books collection from the server on mount
+  // Side effect triggering initial data loading on filters mutations sequence shifts
   useEffect(() => {
-    const fetchInitialData = async () => {
-      setIsLoading(true);
-      setError(null);
+    // Instantiate a fresh controller wrapper boundary for this specific run execution loop
+    const controller = new AbortController();
+    const { signal } = controller;
+
+    dispatch({ type: 'FETCH_INIT_START' });
+
+    const executeInitialFetch = async () => {
       try {
-        const remoteBooks = await booksService.getAllBooks();
-        const normalizedMap = new Map(remoteBooks.map((book) => [book.id, book]));
-        setBooksMap(normalizedMap);
+        const queryFilters: QueryFilters = {};
+        if (favOnly) queryFilters.isFavorite = true;
+        if (search.trim()) queryFilters.search = search.trim();
+        if (selectedAuthor) queryFilters.author = selectedAuthor;
+        if (selectedYear) queryFilters.year = selectedYear;
+
+        // Forward the specific abort signal reference into the infrastructure layer
+        const remoteBooks = await booksService.getAllBooks(
+          1,
+          BOOKS_PER_PAGE_LIMIT,
+          queryFilters,
+          { signal }
+        );
+
+        dispatch({
+          type: 'FETCH_SUCCESS',
+          payload: { remoteBooks, isInitial: true },
+        });
       } catch (err) {
-        const msg = err instanceof Error ? err.message : 'Failed to fetch catalog';
-        setError(msg);
-        showSnack(`Data sync failed: ${msg}`, SNACK_TYPES.ERROR);
-      } finally {
-        setIsLoading(false);
+        // Intercept clean user-triggered browser abort actions silently without pushing error indicators
+        if (err instanceof Error && err.name === 'AbortError') {
+          return;
+        }
+        const msg = err instanceof Error ? err.message : 'Failed to sync data';
+        dispatch({ type: 'FETCH_FAILURE', payload: msg });
+        showSnack(`Network error: ${msg}`, SNACK_TYPES.ERROR);
       }
     };
 
-    fetchInitialData();
-  }, []);
+    executeInitialFetch();
 
-  // 2. Derive favorites IDs array reactively from the Map values
-  const favorites = useMemo(() => {
-    return Array.from(booksMap.values())
-      .filter((book) => book.isFavorite)
-      .map((book) => book.id);
-  }, [booksMap]);
+    // Kill the pending connection flow instantly if dependencies change mid-flight
+    return () => {
+      controller.abort();
+    };
+  }, [search, favOnly, selectedAuthor, selectedYear, showSnack]);
 
-  // 3. Delete book with full integration of custom confirm dialogue and success snack
+  // Side effect executing incremental pagination fetching routines when page changes (> 1)
+  useEffect(() => {
+    const controller = new AbortController();
+    const { signal } = controller;
+
+    if (state.page > 1) {
+      dispatch({ type: 'FETCH_NEXT_START' });
+
+      const executeNextPageFetch = async () => {
+        try {
+          const queryFilters: QueryFilters = {};
+          if (favOnly) queryFilters.isFavorite = true;
+          if (search.trim()) queryFilters.search = search.trim();
+          if (selectedAuthor) queryFilters.author = selectedAuthor;
+          if (selectedYear) queryFilters.year = selectedYear;
+
+          // Forward the specific abort signal reference into the infrastructure layer
+          const remoteBooks = await booksService.getAllBooks(
+            state.page,
+            BOOKS_PER_PAGE_LIMIT,
+            queryFilters,
+            { signal }
+          );
+
+          dispatch({
+            type: 'FETCH_SUCCESS',
+            payload: { remoteBooks, isInitial: false },
+          });
+        } catch (err) {
+          if (err instanceof Error && err.name === 'AbortError') {
+            return;
+          }
+          const msg =
+            err instanceof Error ? err.message : 'Failed to sync data';
+          dispatch({ type: 'FETCH_FAILURE', payload: msg });
+          showSnack(`Network error: ${msg}`, SNACK_TYPES.ERROR);
+        }
+      };
+
+      executeNextPageFetch();
+    }
+
+    return () => {
+      controller.abort();
+    };
+  }, [state.page, search, favOnly, selectedAuthor, selectedYear, showSnack]);
+
+  const loadNextPage = useCallback(() => {
+    if (state.isFetchingNextPage || !state.hasMore || state.isLoading) return;
+    dispatch({ type: 'NEXT_PAGE' });
+  }, [state.isFetchingNextPage, state.hasMore, state.isLoading]);
+
   const handleDeleteBook = async (id: string) => {
-    const targetBook = booksMap.get(id);
+    const targetBook = state.booksMap.get(id);
     const bookTitle = targetBook ? `"${targetBook.title}"` : 'this book';
 
     const isConfirmed = await showConfirm({
       title: 'Delete Book Record',
-      description: `Are you absolutely sure you want to delete ${bookTitle}? This operation will permanently remove the record from the remote server database.`,
+      description: `Are you absolutely sure you want to delete ${bookTitle}?`,
       confirmLabel: 'Delete permanently',
       cancelLabel: 'Keep book',
       isDanger: true,
@@ -63,66 +234,54 @@ export function useBooksCatalog({ search, favOnly }: UseBooksCatalogProps) {
 
     try {
       await booksService.deleteBook(id);
-      
-      setBooksMap((prev) => {
-        const next = new Map(prev);
-        next.delete(id);
-        return next;
-      });
-      
-      showSnack(`${bookTitle} was successfully deleted from the database.`, SNACK_TYPES.SUCCESS);
+      dispatch({ type: 'DELETE_BOOK', payload: id });
+      showSnack(`${bookTitle} was successfully deleted.`, SNACK_TYPES.SUCCESS);
     } catch (err) {
-      showSnack(err instanceof Error ? err.message : 'Server rejected the delete operation.', SNACK_TYPES.ERROR);
+      showSnack(
+        err instanceof Error ? err.message : 'Server rejected deletion.',
+        SNACK_TYPES.ERROR
+      );
     }
   };
 
-  // 4. Toggle favorite flag with instant O(1) lookup and confirmation snack
   const handleToggleFavorite = async (id: string) => {
-    const targetBook = booksMap.get(id);
+    const targetBook = state.booksMap.get(id);
     if (!targetBook) return;
 
     const updatedStatus = !targetBook.isFavorite;
 
     try {
       await booksService.patchBook(id, { isFavorite: updatedStatus });
-
-      setBooksMap((prev) => {
-        const next = new Map(prev);
-        next.set(id, { ...targetBook, isFavorite: updatedStatus });
-        return next;
+      dispatch({
+        type: 'TOGGLE_FAVORITE',
+        payload: { id, isFavorite: updatedStatus },
       });
 
-      const snackMessage = updatedStatus
-        ? `"${targetBook.title}" added to your favorites stack.`
-        : `"${targetBook.title}" removed from your favorites stack.`;
-        
-      showSnack(snackMessage, SNACK_TYPES.SUCCESS);
+      showSnack(
+        updatedStatus
+          ? `"${targetBook.title}" bookmarked.`
+          : `"${targetBook.title}" unbookmarked.`,
+        SNACK_TYPES.SUCCESS
+      );
     } catch (err) {
-      showSnack('Server failed to synchronize your favorite status.', SNACK_TYPES.ERROR);
+      showSnack(
+        'Server failed to synchronize your favorite status.',
+        SNACK_TYPES.ERROR
+      );
     }
   };
 
-  // 5. Compute filtered array from Map values
   const filteredBooks = useMemo(() => {
-    const normalizedSearch = search.toLowerCase().trim();
-    const allBooks = Array.from(booksMap.values());
-
-    return allBooks.filter((book) => {
-      const matchesSearch = !normalizedSearch ||
-        book.title.toLowerCase().includes(normalizedSearch) ||
-        book.author.toLowerCase().includes(normalizedSearch);
-        
-      const matchesFav = favOnly ? book.isFavorite : true;
-      
-      return matchesSearch && matchesFav;
-    });
-  }, [booksMap, search, favOnly]);
+    return Array.from(state.booksMap.values());
+  }, [state.booksMap]);
 
   return {
     filteredBooks,
-    isLoading,
-    error,
-    favorites,
+    isLoading: state.isLoading,
+    isFetchingNextPage: state.isFetchingNextPage,
+    hasMore: state.hasMore,
+    error: state.error,
+    loadNextPage,
     handleDeleteBook,
     handleToggleFavorite,
   };
