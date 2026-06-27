@@ -1,13 +1,13 @@
 export function AboutHeader() {
   return (
-    <section className="text-center sm:text-left space-y-4">
+    <section className="text-center space-y-4 sm:text-left">
       {/* Main semantic heading with responsive text scaling */}
       <h1 className="text-3xl font-black tracking-tight text-slate-900 dark:text-slate-50 sm:text-4xl">
         About BookSPA Project
       </h1>
-      
+
       {/* Introduction paragraph showcasing the comparative nature of the project */}
-      <p className="text-lg text-slate-600 dark:text-slate-400 leading-relaxed">
+      <p className="text-lg leading-relaxed text-slate-600 dark:text-slate-400">
         This demonstration project is designed to compare two fundamental
         approaches in React development: classic{' '}
         <span className="font-semibold text-amber-600 dark:text-amber-400">
