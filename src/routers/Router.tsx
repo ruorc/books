@@ -1,28 +1,35 @@
-import { lazy } from 'react';
+import { lazy, Suspense } from 'react';
 import { createBrowserRouter, RouterProvider } from 'react-router-dom';
 import Layout from '@/layout/Layout';
-import BooksLayout from '@/routers/layouts/BooksLayout'; // Imported the newly created isolated state boundary layout
+import BooksLayout from '@/routers/layouts/BooksLayout';
+import PageLoader from '@/components/PageLoader';
 import { ROUTES } from './routes';
 
-// Lazy loading views to split the bundle and optimize initial load time
+// Import loader along with the view directly to execute non-blocking layout route pre-fetching
+import BookDetailPage, {
+  bookDetailLoader,
+} from '@/views/BookDetailPage/BookDetailPage';
+
+// Standard chunk-splitting code isolation bundles
 const AboutPage = lazy(() => import('@/views/AboutPage/AboutPage'));
 const BooksPage = lazy(() => import('@/views/BooksPage/BooksPage'));
-const BookDetailPage = lazy(
-  () => import('@/views/BookDetailPage/BookDetailPage')
-);
 const NotFoundPage = lazy(() => import('@/views/NotFoundPage'));
 
 const router = createBrowserRouter([
   {
     path: '/',
-    element: <Layout />, // Header and Footer will now stay persistent across navigation
+    // Protected by a root Suspense context guarding initial chunks assembly drops
+    element: (
+      <Suspense fallback={<PageLoader className="h-screen" />}>
+        <Layout />
+      </Suspense>
+    ),
     children: [
       {
         path: ROUTES.HOME,
         element: <AboutPage />,
       },
       {
-        // CRITICAL NESTED LAYOUT: Grouping books domain pages under the specific BooksLayout wrapper
         element: <BooksLayout />,
         children: [
           {
@@ -32,6 +39,8 @@ const router = createBrowserRouter([
           {
             path: ROUTES.BOOK_DETAIL,
             element: <BookDetailPage />,
+            // Linking the declarative data stream loader straight into the routing node mapping
+            loader: bookDetailLoader,
           },
         ],
       },
