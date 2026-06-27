@@ -2,13 +2,14 @@ import { useEffect, useState } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { Search, Plus, Heart, X } from 'lucide-react';
 import { useAppMode } from '@/providers/AppModeProvider';
-import { FAVORITES_FILTER_KEY } from '@/constants/ui';
+import { FAVORITES_FILTER_KEY, FILTER_TYPES } from '@/constants/ui';
 import { MODES } from '@/constants/mode';
 import PageLoader from '@/components/PageLoader';
 import { FuncCatalog } from './FuncCatalog';
+import type { CatalogFilterType } from '@/types/filter';
 
 interface RouterLocationState {
-  filterType?: 'author' | 'year';
+  filterType?: CatalogFilterType;
   filterValue?: string;
 }
 
@@ -36,10 +37,10 @@ export default function BooksPage() {
 
     const { filterType, filterValue } = routerState;
 
-    if (filterType === 'author') {
+    if (filterType === FILTER_TYPES.AUTHOR) {
       setSelectedAuthor(filterValue);
       setSearchQuery('');
-    } else if (filterType === 'year') {
+    } else if (filterType === FILTER_TYPES.YEAR) {
       setSelectedYear(filterValue);
       setSearchQuery('');
     }
