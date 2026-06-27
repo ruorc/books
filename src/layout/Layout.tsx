@@ -5,6 +5,7 @@ import { useProjectTheme } from '@/providers/ProjectThemeProvider';
 import { useSnack } from '@/providers/SnackProvider';
 import { SNACK_TYPES } from '@/constants/snack';
 import { THEME_LABELS } from '@/constants/theme';
+import { MODES } from '@/constants/mode';
 import PageLoader from '@/components/PageLoader';
 import Footer from './footer/Footer';
 import Header from './header/Header';
@@ -26,8 +27,16 @@ export default function Layout() {
 
     previousModeRef.current = mode;
 
-    const modeLabel = mode === 'function' ? 'Functional Components (Hooks)' : 'Class Components (Lifecycle)';
-    showSnack(`Switched rendering architecture engine to: ${modeLabel}`, SNACK_TYPES.INFO);
+    // Fully aligned with the updated MODES.FUNCTIONAL constant schema
+    const modeLabel =
+      mode === MODES.FUNCTIONAL
+        ? 'Functional Components (Hooks)'
+        : 'Class Components (Lifecycle)';
+
+    showSnack(
+      `Switched rendering architecture engine to: ${modeLabel}`,
+      SNACK_TYPES.INFO
+    );
   }, [mode, showSnack]);
 
   // 2. Reactively monitor theme changes without triggering parent tree rerenders
@@ -36,8 +45,11 @@ export default function Layout() {
     if (previousThemeRef.current === theme) return;
 
     previousThemeRef.current = theme;
-    
-    showSnack(`Theme preference updated to: ${THEME_LABELS[theme]}`, SNACK_TYPES.INFO);
+
+    showSnack(
+      `Theme preference updated to: ${THEME_LABELS[theme]}`,
+      SNACK_TYPES.INFO
+    );
   }, [theme, showSnack]);
 
   return (
