@@ -1,4 +1,13 @@
-import { createContext, useContext, useState, useCallback, type PropsWithChildren } from 'react';
+import {
+  createContext,
+  useContext,
+  useState,
+  useCallback,
+  useMemo,
+  useEffect,
+  useRef,
+  type PropsWithChildren,
+} from 'react';
 import { AnimatePresence, motion } from 'framer-motion';
 import { CheckCircle2, AlertCircle, Info, X } from 'lucide-react';
 import { SNACK_TYPES, SNACK_AUTOHIDE_DURATION } from '@/constants/snack';
@@ -13,26 +22,53 @@ const SnackContext = createContext<SnackContextType | undefined>(undefined);
 export function SnackProvider({ children }: PropsWithChildren) {
   const [snacks, setSnacks] = useState<Snack[]>([]);
 
-  // Smoothly remove a specific snack from the active stack by ID
-  const removeSnack = useCallback((id: string) => {
-    setSnacks((prev) => prev.filter((snack) => snack.id !== id));
+  // Track active timers to secure clean garage collection upon infrastructure unmounts
+  const timersRef = useRef<Map<string, ReturnType<typeof setTimeout>>>(
+    new Map()
+  );
+
+  // Clean up all pending macro-task timers when the provider gets unmounted
+  useEffect(() => {
+    return () => {
+      timersRef.current.forEach((timer) => clearTimeout(timer));
+      timersRef.current.clear();
+    };
   }, []);
 
-  // Public method to generate a new snack and trigger its auto-cleanup timer
-  const showSnack = useCallback((message: string, type: SnackType = SNACK_TYPES.INFO) => {
-    const id = crypto.randomUUID();
-    
-    setSnacks((prev) => [...prev, { id, message, type }]);
+  // Smoothly remove a specific snack from the active stack by ID and clear its timer
+  const removeSnack = useCallback((id: string) => {
+    setSnacks((prev) => prev.filter((snack) => snack.id !== id));
 
-    setTimeout(() => {
-      removeSnack(id);
-    }, SNACK_AUTOHIDE_DURATION);
-  }, [removeSnack]);
+    const pendingTimer = timersRef.current.get(id);
+    if (pendingTimer) {
+      clearTimeout(pendingTimer);
+      timersRef.current.delete(id);
+    }
+  }, []);
+
+  // Public method to generate a new snack and trigger its auto-cleanup timer safely
+  const showSnack = useCallback(
+    (message: string, type: SnackType = SNACK_TYPES.INFO) => {
+      const id = crypto.randomUUID();
+
+      setSnacks((prev) => [...prev, { id, message, type }]);
+
+      const timer = setTimeout(() => {
+        removeSnack(id);
+      }, SNACK_AUTOHIDE_DURATION);
+
+      timersRef.current.set(id, timer);
+    },
+    [removeSnack]
+  );
+
+  // Freeze the public API surface area to block down-tree component thrashing
+  const contextValue = useMemo(() => ({ showSnack }), [showSnack]);
 
   return (
-    <SnackContext.Provider value={{ showSnack }}>
+    <SnackContext.Provider value={contextValue}>
       {children}
-      
+
       {/* Floating fixed container holding the stack of snacks */}
       <div className="fixed bottom-5 right-5 z-50 flex flex-col gap-3 w-full max-w-sm pointer-events-none">
         <AnimatePresence>
@@ -57,9 +93,13 @@ export function SnackProvider({ children }: PropsWithChildren) {
               >
                 {/* Dynamic Icon matching the notification status */}
                 <div className="shrink-0 mt-0.5">
-                  {isSuccess && <CheckCircle2 className="h-5 w-5 text-emerald-500" />}
+                  {isSuccess && (
+                    <CheckCircle2 className="h-5 w-5 text-emerald-500" />
+                  )}
                   {isError && <AlertCircle className="h-5 w-5 text-rose-500" />}
-                  {!isSuccess && !isError && <Info className="h-5 w-5 text-blue-500" />}
+                  {!isSuccess && !isError && (
+                    <Info className="h-5 w-5 text-blue-500" />
+                  )}
                 </div>
 
                 {/* Main informational text message */}
@@ -71,7 +111,8 @@ export function SnackProvider({ children }: PropsWithChildren) {
                 <button
                   type="button"
                   onClick={() => removeSnack(snack.id)}
-                  className="shrink-0 text-slate-400 hover:text-slate-600 dark:hover:text-slate-300 focus:outline-none transition-colors"
+                  className="shrink-0 text-slate-400 hover:text-slate-600 dark:hover:text-slate-300 focus:outline-none focus:ring-2 focus:ring-slate-400 rounded-lg transition-colors cursor-pointer"
+                  aria-label="Dismiss notification"
                 >
                   <X className="h-4 w-4" />
                 </button>

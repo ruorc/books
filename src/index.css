@@ -5,6 +5,7 @@
 html {
   scrollbar-gutter: stable;
 }
+
 html,
 body,
 #root {
@@ -12,14 +13,26 @@ body,
   margin: 0;
   padding: 0;
 }
-*,
-*::before,
-*::after {
+
+/* 
+ * Safe global theme transition targeting. 
+ * Instead of absolute wildcard '*', we bind smooth transitions 
+ * primarily to structural, interactive, and typography components.
+ */
+body,
+a,
+button,
+input,
+select,
+textarea,
+.theme-transition {
   transition-property:
     color, background-color, border-color, text-decoration-color;
   transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
   transition-duration: 300ms;
 }
+
+/* Prevent layout shifts and transition spikes during initial page/theme load */
 .preload,
 .preload *,
 .preload *::before,

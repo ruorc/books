@@ -7,7 +7,11 @@
     <meta charset="UTF-8" />
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>books</title>
+    <meta
+      name="description"
+      content="A modern book catalog application with offline sync and advanced filtering."
+    />
+    <title>Books Management System</title>
 
     <script>
       (function () {
@@ -20,10 +24,11 @@
 
         document.documentElement.classList.toggle('dark', isDarkMode);
 
+        // Safely clear the preload marker after layout paint
         window.addEventListener('DOMContentLoaded', () => {
-          setTimeout(() => {
+          requestAnimationFrame(() => {
             document.documentElement.classList.remove('preload');
-          }, 1);
+          });
         });
       })();
     </script>

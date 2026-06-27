@@ -22,10 +22,12 @@ export function SegmentedControl<T extends string>({
   onChange,
   isLoading = false,
 }: SegmentedControlProps<T>) {
-  // Store refs of all buttons to programmatically manage focus
   const buttonRefs = useRef<HTMLButtonElement[]>([]);
 
-  // Handle keyboard navigation according to WAI-ARIA Radio Group pattern
+  // Reset array length before each render cycle to prevent memory leaks
+  // and keep references perfectly synchronized with the layout map.
+  buttonRefs.current = [];
+
   const handleKeyDown = (e: KeyboardEvent<HTMLDivElement>) => {
     if (isLoading) return;
 
@@ -36,31 +38,29 @@ export function SegmentedControl<T extends string>({
       case 'ArrowRight':
       case 'ArrowDown':
         e.preventDefault();
-        // Move to next option, wrap around to the beginning if at the end
         nextIndex = (currentIndex + 1) % options.length;
         break;
       case 'ArrowLeft':
       case 'ArrowUp':
         e.preventDefault();
-        // Move to previous option, wrap around to the end if at the beginning
         nextIndex = (currentIndex - 1 + options.length) % options.length;
         break;
       default:
-        return; // Exit for other keys
+        return;
     }
 
     const nextOption = options[nextIndex];
     if (nextOption) {
       onChange(nextOption.id);
-      // Focus the newly selected button immediately
       setTimeout(() => buttonRefs.current[nextIndex]?.focus(), 0);
     }
   };
 
-   return (
+  return (
     <div
       role="radiogroup"
       aria-label="Selection control"
+      aria-disabled={isLoading} // Semantic indicator for screen readers
       onKeyDown={handleKeyDown}
       className={`relative inline-flex rounded-xl bg-slate-100 p-1 dark:bg-slate-800 border border-slate-200 dark:border-slate-800 transition-opacity ${
         isLoading ? 'opacity-70 pointer-events-none' : ''
@@ -79,7 +79,6 @@ export function SegmentedControl<T extends string>({
             type="button"
             role="radio"
             aria-checked={isActive}
-            // Strict A11y: only the active item is keyboard-focusable via Tab
             tabIndex={isActive ? 0 : -1}
             disabled={isLoading}
             onClick={() => {
@@ -93,10 +92,9 @@ export function SegmentedControl<T extends string>({
                   : 'text-slate-600 hover:text-slate-900 dark:text-slate-400 dark:hover:text-slate-50 cursor-pointer'
             }`}
           >
-            {/* Sliding background pill with a unique scoped layoutId */}
             {isActive && (
               <motion.span
-                layoutId={`active-pill-${id}`} // Scoped with unique instance ID
+                layoutId={`active-pill-${id}`}
                 transition={{ type: 'spring', stiffness: 380, damping: 30 }}
                 className="absolute inset-0 bg-white dark:bg-slate-950 rounded-lg shadow-sm -z-10"
               />

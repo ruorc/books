@@ -1,4 +1,12 @@
-import { createContext, useContext, useEffect, useState, type PropsWithChildren } from 'react';
+import {
+  createContext,
+  useContext,
+  useEffect,
+  useState,
+  useMemo,
+  useCallback,
+  type PropsWithChildren,
+} from 'react';
 import { THEME_KEY, DEFAULT_THEME, THEMES } from '@/constants/theme';
 import type { Theme } from '@/types/theme';
 
@@ -16,17 +24,19 @@ export function ProjectThemeProvider({ children }: PropsWithChildren) {
     return (saved as Theme) || DEFAULT_THEME;
   });
 
-  const [systemPrefersDark, setSystemPrefersDark] = useState(() => 
-    window.matchMedia('(prefers-color-scheme: dark)').matches
+  const [systemPrefersDark, setSystemPrefersDark] = useState(
+    () => window.matchMedia('(prefers-color-scheme: dark)').matches
   );
 
-  const isDark = theme === THEMES.SYSTEM ? systemPrefersDark : theme === THEMES.DARK;
+  const isDark =
+    theme === THEMES.SYSTEM ? systemPrefersDark : theme === THEMES.DARK;
 
   // 1. Listen for real-time system theme changes
   useEffect(() => {
     const mediaQuery = window.matchMedia('(prefers-color-scheme: dark)');
-    const handleChange = (e: MediaQueryListEvent) => setSystemPrefersDark(e.matches);
-    
+    const handleChange = (e: MediaQueryListEvent) =>
+      setSystemPrefersDark(e.matches);
+
     mediaQuery.addEventListener('change', handleChange);
     return () => mediaQuery.removeEventListener('change', handleChange);
   }, []);
@@ -57,13 +67,25 @@ export function ProjectThemeProvider({ children }: PropsWithChildren) {
     return () => window.removeEventListener('storage', handleStorageChange);
   }, []);
 
-  const setTheme = (newTheme: Theme) => {
-    if (newTheme === theme) return;
-    setThemeState(newTheme);
-  };
+  // Memoize state mutation handler to secure stable reference pipeline
+  const setTheme = useCallback((newTheme: Theme) => {
+    setThemeState((prevTheme) =>
+      newTheme === prevTheme ? prevTheme : newTheme
+    );
+  }, []);
+
+  // Strict structural memoization preventing cascading tree-wide UI thrashing
+  const contextValue = useMemo(
+    () => ({
+      theme,
+      setTheme,
+      isDark,
+    }),
+    [theme, setTheme, isDark]
+  );
 
   return (
-    <ThemeContext.Provider value={{ theme, setTheme, isDark }}>
+    <ThemeContext.Provider value={contextValue}>
       {children}
     </ThemeContext.Provider>
   );
@@ -72,7 +94,9 @@ export function ProjectThemeProvider({ children }: PropsWithChildren) {
 export function useProjectTheme() {
   const context = useContext(ThemeContext);
   if (!context) {
-    throw new Error('useProjectTheme must be used within a ProjectThemeProvider');
+    throw new Error(
+      'useProjectTheme must be used within a ProjectThemeProvider'
+    );
   }
   return context;
 }
