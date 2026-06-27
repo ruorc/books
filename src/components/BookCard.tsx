@@ -98,14 +98,21 @@ export function BookCard({
 
           <button
             type="button"
-            onClick={() => onToggleFavorite(book.id)}
-            className="p-2 text-gray-500 bg-gray-50 dark:bg-gray-700/50 rounded-xl hover:text-red-600 dark:text-gray-400 dark:hover:text-red-500 shadow-xs transition-colors cursor-pointer focus:outline-none focus:ring-2 focus:ring-gray-200 dark:focus:ring-gray-700 shrink-0"
+            onClick={(e) => {
+              e.stopPropagation();
+              onToggleFavorite(book.id);
+            }}
+            className={`p-2 rounded-xl border transition-colors cursor-pointer focus:outline-none focus-visible:ring-2 focus-visible:ring-red-400 ${
+              isFavorite
+                ? 'bg-red-50 border-red-200 text-red-500 hover:bg-red-100 dark:bg-red-950/40 dark:border-red-900/60 dark:text-red-400'
+                : 'bg-white border-slate-200 text-slate-400 hover:bg-slate-50 dark:bg-slate-800 dark:border-slate-700 dark:text-slate-500 dark:hover:bg-slate-700'
+            }`}
             aria-label={
               isFavorite ? 'Remove from favorites' : 'Add to favorites'
             }
           >
             <Heart
-              className={`h-4 w-4 ${isFavorite ? 'fill-red-600 text-red-600 dark:fill-red-500 dark:text-red-500' : ''}`}
+              className={`h-4 w-4 ${isFavorite ? 'fill-red-500 dark:fill-red-400' : ''}`}
             />
           </button>
         </div>

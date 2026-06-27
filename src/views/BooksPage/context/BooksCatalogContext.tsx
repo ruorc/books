@@ -26,7 +26,8 @@ export type CatalogAction =
       payload: { remoteBooks: Book[]; isInitial: boolean };
     }
   | { type: 'FETCH_FAILURE'; payload: string }
-  | { type: 'NEXT_PAGE' };
+  | { type: 'NEXT_PAGE' }
+  | { type: 'LOCAL_ADD_BOOK'; payload: Book };
 
 const initialState: CatalogState = {
   booksMap: new Map(),
@@ -74,6 +75,15 @@ function catalogReducer(
       };
     case 'NEXT_PAGE':
       return { ...state, page: state.page + 1 };
+    case 'LOCAL_ADD_BOOK': {
+      // Create a brand new Map instance to guarantee reference mutation drop
+      const nextMap = new Map(state.booksMap);
+      nextMap.set(action.payload.id, action.payload);
+      return {
+        ...state,
+        booksMap: nextMap,
+      };
+    }
     default:
       return state;
   }
