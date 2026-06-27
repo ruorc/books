@@ -1,4 +1,4 @@
-import { useMemo } from 'react';
+import { useMemo, useState, useCallback } from 'react';
 import { useBooksFetch } from './useBooksFetch';
 import { useBooksActions } from './useBooksActions';
 
@@ -11,25 +11,23 @@ interface UseBooksCatalogProps {
 
 export function useBooksCatalog(props: UseBooksCatalogProps) {
   const { search, favOnly, selectedAuthor, selectedYear } = props;
+  const { state, loadNextPage } = useBooksFetch(props);
 
-  // Forward the active configuration dictionary straight into the data layer hook
-  const { state, dispatch, loadNextPage } = useBooksFetch(props);
+  // Micro-state version counter forcing clean client-side re-renders upon direct cache mutations
+  const [, setListVersion] = useState(0);
+  const forceListUpdate = useCallback(() => setListVersion((v) => v + 1), []);
 
+  // Connected direct actions mapped with stable state triggers
   const { handleDeleteBook, handleToggleFavorite } = useBooksActions({
     booksMap: state.booksMap,
-    dispatch,
+    triggerListUpdate: forceListUpdate,
   });
 
-  /**
-   * Safe and reactive client-side filtering engine.
-   * Ensures instant interface response even during background network synchronization cycles.
-   */
   const filteredBooks = useMemo(() => {
     const allBooks = Array.from(state.booksMap.values());
     const normalizedSearch = search.trim().toLowerCase();
 
     return allBooks.filter((book) => {
-      // 1. Full-text search criteria matching title or author
       if (normalizedSearch) {
         const matchesTitle = book.title
           .toLowerCase()
@@ -40,23 +38,13 @@ export function useBooksCatalog(props: UseBooksCatalogProps) {
         if (!matchesTitle && !matchesAuthor) return false;
       }
 
-      // 2. Local storage driven favorite criteria toggle matching
-      if (favOnly && !book.isFavorite) {
-        return false;
-      }
-
-      // 3. Metadata explicit author query selection matching
-      if (selectedAuthor && book.author !== selectedAuthor) {
-        return false;
-      }
-
-      // 4. Metadata explicit publication year query selection matching
-      if (selectedYear && book.year !== selectedYear) {
-        return false;
-      }
+      if (favOnly && !book.isFavorite) return false;
+      if (selectedAuthor && book.author !== selectedAuthor) return false;
+      if (selectedYear && book.year !== selectedYear) return false;
 
       return true;
     });
+    // Connected local list state version counter as a reactive dependency link
   }, [state.booksMap, search, favOnly, selectedAuthor, selectedYear]);
 
   return {

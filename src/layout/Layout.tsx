@@ -5,6 +5,7 @@ import { useProjectTheme } from '@/providers/ProjectThemeProvider';
 import { useSnack } from '@/providers/SnackProvider';
 import { SNACK_TYPES } from '@/constants/snack';
 import { THEME_LABELS } from '@/constants/theme';
+import { ENGINE_LABELS } from '@/constants/ui';
 import { MODES } from '@/constants/mode';
 import PageLoader from '@/components/PageLoader';
 import Footer from './footer/Footer';
@@ -30,8 +31,8 @@ export default function Layout() {
     // Fully aligned with the updated MODES.FUNCTIONAL constant schema
     const modeLabel =
       mode === MODES.FUNCTIONAL
-        ? 'Functional Components (Hooks)'
-        : 'Class Components (Lifecycle)';
+        ? ENGINE_LABELS.FUNCTIONAL
+        : ENGINE_LABELS.CLASS;
 
     showSnack(
       `Switched rendering architecture engine to: ${modeLabel}`,

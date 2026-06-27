@@ -5,35 +5,28 @@ import { useSnack } from '@/providers/SnackProvider';
 import { SNACK_TYPES } from '@/constants/snack';
 import type { Book } from '@/types/book';
 
-/**
- * Action dispatch interface mapping local reducer requirements.
- */
-type SyncDispatch = (
-  action:
-    | { type: 'LOCAL_DELETE'; payload: string }
-    | {
-        type: 'LOCAL_TOGGLE_FAVORITE';
-        payload: { id: string; isFavorite: boolean };
-      }
-) => void;
-
 interface UseBooksActionsProps {
   booksMap: Map<string, Book>;
-  dispatch: SyncDispatch;
+  // Force update trigger signature to notify parent components about client mutations
+  triggerListUpdate: () => void;
 }
 
-export function useBooksActions({ booksMap, dispatch }: UseBooksActionsProps) {
+export function useBooksActions({
+  booksMap,
+  triggerListUpdate,
+}: UseBooksActionsProps) {
   const { showConfirm } = useConfirm();
   const { showSnack } = useSnack();
 
   /**
-   * Orchestrates the secure removal workflow by awaiting global modal confirmation.
-   * Locked via useCallback to protect nested BookCard list items from redundant renders.
+   * Optimistically removes a book entity from local cache maps.
    */
   const handleDeleteBook = useCallback(
     async (id: string) => {
       const targetBook = booksMap.get(id);
-      const bookTitle = targetBook ? `"${targetBook.title}"` : 'this book';
+      if (!targetBook) return;
+
+      const bookTitle = `"${targetBook.title}"`;
 
       const isConfirmed = await showConfirm({
         title: 'Delete Book Record',
@@ -45,44 +38,53 @@ export function useBooksActions({ booksMap, dispatch }: UseBooksActionsProps) {
 
       if (!isConfirmed) return;
 
-      try {
-        // Aligned with the unified interface contract: delete
-        await booksService.delete(id);
+      // Save previous state fallback profile for secure error rollback recovery
+      const backupBook = { ...targetBook };
 
-        dispatch({ type: 'LOCAL_DELETE', payload: id });
+      try {
+        // 1. Optimistic UI update: instantly drop item from local client memory cache
+        booksMap.delete(id);
+        triggerListUpdate(); // Force component re-render
+
+        // 2. Synchronize mutation with the remote server database
+        await booksService.delete(id);
         showSnack(
           `${bookTitle} was successfully deleted.`,
           SNACK_TYPES.SUCCESS
         );
       } catch (err) {
+        // Rollback: Restore item back into client memory maps if the network pipeline breaks
+        booksMap.set(id, backupBook);
+        triggerListUpdate();
+
         showSnack(
           err instanceof Error ? err.message : 'Server rejected deletion.',
           SNACK_TYPES.ERROR
         );
       }
     },
-    [booksMap, dispatch, showConfirm, showSnack]
+    [booksMap, showConfirm, showSnack, triggerListUpdate]
   );
 
   /**
-   * Synchronizes the favorite state toggle across remote infrastructure and local memory maps.
-   * Locked via useCallback to secure stable reference pipelines.
+   * Optimistically updates metadata properties inside individual entity records.
+   * This decoupled design scales natively to generic workflows like "handleEditBook"!
    */
   const handleToggleFavorite = useCallback(
     async (id: string) => {
       const targetBook = booksMap.get(id);
       if (!targetBook) return;
 
-      const updatedStatus = !targetBook.isFavorite;
+      const currentStatus = targetBook.isFavorite;
+      const updatedStatus = !currentStatus;
 
       try {
-        // Aligned with the unified interface contract: patch
-        await booksService.patch(id, { isFavorite: updatedStatus });
+        // 1. Optimistic UI update: instantly toggle favorite locally
+        targetBook.isFavorite = updatedStatus;
+        triggerListUpdate();
 
-        dispatch({
-          type: 'LOCAL_TOGGLE_FAVORITE',
-          payload: { id, isFavorite: updatedStatus },
-        });
+        // 2. Synchronize mutation with remote REST server endpoints
+        await booksService.patch(id, { isFavorite: updatedStatus });
 
         showSnack(
           updatedStatus
@@ -91,13 +93,17 @@ export function useBooksActions({ booksMap, dispatch }: UseBooksActionsProps) {
           SNACK_TYPES.SUCCESS
         );
       } catch (err) {
+        // Rollback: Revert fields values if the transaction pipeline fails
+        targetBook.isFavorite = currentStatus;
+        triggerListUpdate();
+
         showSnack(
           'Server failed to synchronize your favorite status.',
           SNACK_TYPES.ERROR
         );
       }
     },
-    [booksMap, dispatch, showSnack]
+    [booksMap, showSnack, triggerListUpdate]
   );
 
   return {
