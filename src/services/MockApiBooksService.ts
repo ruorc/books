@@ -3,19 +3,24 @@ import type { Book, BookPayload } from '@/types/book';
 import type { RetryOptions, QueryFilters } from '@/types/api';
 import type { IMockApiBooksService } from '@/types/booksService';
 
-// Use 'implements' keyword to bind the strict MockAPI contract boundary
-export class MockApiBooksService extends HttpBooksService implements IMockApiBooksService {
+/**
+ * MockAPI adapter overriding default mechanisms to patch vendor constraints.
+ */
+export class MockApiBooksService
+  extends HttpBooksService
+  implements IMockApiBooksService
+{
   /**
-   * Overrides the base method to implement customized MockAPI query constraints resolution
+   * Normalizes boolean values to strings and intercepts 404 responses to fallback empty arrays safely.
    */
-  override async getAllBooks(
-    page: number, 
-    limit: number, 
-    filters: QueryFilters = {}, 
+  override async getAll(
+    page: number,
+    limit: number,
+    filters: QueryFilters<Book> = {},
     retryOptions: RetryOptions = {}
-  ): Promise<Book[]> {
+  ): Promise<Partial<Book>[]> {
     try {
-      const sanitizedFilters: QueryFilters = {};
+      const sanitizedFilters: QueryFilters<Book> = {};
 
       Object.entries(filters).forEach(([key, value]) => {
         if (value === true || value === 'true') {
@@ -23,11 +28,11 @@ export class MockApiBooksService extends HttpBooksService implements IMockApiBoo
         } else if (value === false || value === 'false') {
           sanitizedFilters[key] = 'false';
         } else if (value !== undefined && value !== '') {
-          sanitizedFilters[key] = value;
+          sanitizedFilters[key] = value as any;
         }
       });
 
-      return await super.getAllBooks(page, limit, sanitizedFilters, retryOptions);
+      return await super.getAll(page, limit, sanitizedFilters, retryOptions);
     } catch (error) {
       if (error instanceof Error && error.message.includes('Status: 404')) {
         return [];
@@ -37,66 +42,69 @@ export class MockApiBooksService extends HttpBooksService implements IMockApiBoo
   }
 
   /**
-   * Overrides createBook to inject baseline server-side timestamps upon entity initialization
+   * Stamps auditing ISO timestamp strings during initial record injection processes.
    */
-  override async createBook(book: Omit<BookPayload, 'isFavorite'>): Promise<Book> {
+  override async create(book: Omit<BookPayload, 'isFavorite'>): Promise<Book> {
     const currentIsoTime = new Date().toISOString();
-    
-    // Explicit intersection type declaration allows appending backend timestamp markers safely
-    const enrichedPayload: Omit<BookPayload, 'isFavorite'> & { createdAt?: string; updatedAt?: string } = {
+
+    const enrichedPayload = {
       ...book,
       createdAt: currentIsoTime,
       updatedAt: currentIsoTime,
     };
 
-    return await super.createBook(enrichedPayload);
+    return await super.create(enrichedPayload);
   }
 
   /**
-   * Overrides updateBook to accept an optional flag for controlling the updatedAt generation log.
+   * Updates targeted fields and cleans out hazardous immutable parameters like 'id' from payloads.
    */
-  override async updateBook(
-    id: string, 
-    updatedData: Partial<BookPayload>, 
+  override async update(
+    id: string,
+    updatedData: Partial<BookPayload>,
     shouldUpdateTimestamp: boolean = true
   ): Promise<Book> {
-    // Explicit intersection type extension resolves the missing property compilation error natively
+    // Destructure to isolate and strip immutable id field preventing 400 Bad Request responses
+    const { id: _, ...cleanData } = updatedData as any;
+
     const enrichedPayload: Partial<BookPayload> & { updatedAt?: string } = {
-      ...updatedData,
+      ...cleanData,
     };
 
     if (shouldUpdateTimestamp) {
       enrichedPayload.updatedAt = new Date().toISOString();
     }
 
-    return await super.updateBook(id, enrichedPayload);
+    return await super.update(id, enrichedPayload);
   }
 
   /**
-   * Overrides patchBook to check properties and delegate transport entirely to updateBook.
+   * Recomposes a virtual patch transaction utilizing standard retry-protected workflow calls.
    */
-  override async patchBook(id: string, partialData: Partial<Book>): Promise<Book> {
+  override async patch(id: string, partialData: Partial<Book>): Promise<Book> {
     try {
-      const getResponse = await fetch(`${this.baseUrl}/${id}`);
-      if (!getResponse.ok) {
-        throw new Error(`Failed to fetch baseline book state for ID ${id}. Status: ${getResponse.status}`);
-      }
-      
-      const currentBook: Book = await getResponse.json();
+      const currentBook = await this.getById(id);
 
       const incomingKeys = Object.keys(partialData);
-      const isOnlyFavoriteToggle = incomingKeys.length === 1 && incomingKeys[0] === 'isFavorite';
+      const isOnlyFavoriteToggle =
+        incomingKeys.length === 1 && incomingKeys[0] === 'isFavorite';
 
-      const fullUpdatedData: Book = {
+      const fullUpdatedData = {
         ...currentBook,
         ...partialData,
       };
 
-      return await this.updateBook(id, fullUpdatedData, !isOnlyFavoriteToggle);
+      return await this.update(id, fullUpdatedData, !isOnlyFavoriteToggle);
     } catch (error) {
-      const errorMessage = error instanceof Error ? error.message : 'Unknown transport error';
-      console.error(`[MockApiBooksService Overridden Patch Error] Failed to delegate patch for book ID ${id}:`, error);
-      throw new Error(`Failed to patch book fields on MockAPI: ${errorMessage}`);
+      const errorMessage =
+        error instanceof Error ? error.message : 'Unknown transport error';
+      console.error(
+        `[MockApiBooksService Overridden Patch Error] Failed to delegate patch for book ID ${id}:`,
+        error
+      );
+      throw new Error(
+        `Failed to patch book fields on MockAPI: ${errorMessage}`
+      );
     }
   }
 }
