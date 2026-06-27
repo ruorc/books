@@ -1,4 +1,4 @@
-import { useCallback } from 'react';
+import { useCallback, useEffect, useRef } from 'react';
 import { useBooksCatalogContext } from '@/views/BooksPage/context/BooksCatalogContext';
 import { booksService } from '@/services/booksDataServiceMockApi';
 import { BOOKS_PER_PAGE_LIMIT } from '@/constants/ui';
@@ -21,14 +21,15 @@ export function useBooksFetch({
 }: UseBooksFetchProps) {
   const { state, dispatch } = useBooksCatalogContext();
 
+  // Ref to hold the active AbortController for the initial request cycle
+  const initialAbortRef = useRef<AbortController | null>(null);
+
   /**
-   * Encapsulates book-specific query filters building pipeline and service network request.
-   * Bound tightly to the verified generic getAll method signature.
+   * Central data transport method fetching explicit page boundaries from the service layer.
    */
   const loadBooksData = useCallback(
     async (targetPage: number, isInitial: boolean, signal: AbortSignal) => {
       try {
-        // Tied QueryFilters strictly to the Book entity interface shape
         const queryFilters: QueryFilters<Book> = {};
 
         if (favOnly) queryFilters.isFavorite = true;
@@ -36,7 +37,6 @@ export function useBooksFetch({
         if (selectedAuthor) queryFilters.author = selectedAuthor;
         if (selectedYear) queryFilters.year = selectedYear;
 
-        // Fully aligned with the strict interface contract: getAll
         const remoteBooks = (await booksService.getAll(
           targetPage,
           BOOKS_PER_PAGE_LIMIT,
@@ -60,18 +60,39 @@ export function useBooksFetch({
   );
 
   /**
-   * Delegates the raw side-effects management lifecycle directly to the generic scroll engine handler.
+   * REACTIVE LIFECYCLE MONITOR:
+   * Orchestrates strict state drops and initial fetch triggers whenever filters mutate.
+   * This logic is now properly isolated here instead of being hardcoded inside the scrolling engine.
+   */
+  useEffect(() => {
+    // Abort any previous pending initial request to avoid race conditions
+    if (initialAbortRef.current) {
+      initialAbortRef.current.abort();
+    }
+
+    const controller = new AbortController();
+    initialAbortRef.current = controller;
+
+    // Cache guard: If we are already on page 1 but maps are empty, or filters changed, fire init
+    dispatch({ type: 'FETCH_INIT_START' });
+    loadBooksData(1, true, controller.signal);
+
+    return () => {
+      controller.abort();
+    };
+  }, [search, favOnly, selectedAuthor, selectedYear, loadBooksData, dispatch]);
+
+  /**
+   * Universal lean infinite scroll engine execution call.
+   * Completely decoupled from any product-specific business logic parameters.
    */
   const { loadNextPage } = useInfiniteScroll({
     page: state.page,
-    cachedItemsCount: state.booksMap.size,
     isLoading: state.isLoading,
     isFetchingNextPage: state.isFetchingNextPage,
     hasMore: state.hasMore,
     dispatch,
     fetchDataFn: loadBooksData,
-    // Collect active search parameters dictionary as a structural dependency bundle
-    dependencies: { search, favOnly, selectedAuthor, selectedYear },
   });
 
   return {

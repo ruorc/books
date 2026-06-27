@@ -26,12 +26,7 @@ export type CatalogAction =
       payload: { remoteBooks: Book[]; isInitial: boolean };
     }
   | { type: 'FETCH_FAILURE'; payload: string }
-  | { type: 'NEXT_PAGE' }
-  | { type: 'LOCAL_DELETE'; payload: string }
-  | {
-      type: 'LOCAL_TOGGLE_FAVORITE';
-      payload: { id: string; isFavorite: boolean };
-    };
+  | { type: 'NEXT_PAGE' };
 
 const initialState: CatalogState = {
   booksMap: new Map(),
@@ -79,20 +74,6 @@ function catalogReducer(
       };
     case 'NEXT_PAGE':
       return { ...state, page: state.page + 1 };
-    case 'LOCAL_DELETE': {
-      const nextMap = new Map(state.booksMap);
-      nextMap.delete(action.payload);
-      return { ...state, booksMap: nextMap };
-    }
-    case 'LOCAL_TOGGLE_FAVORITE': {
-      const { id, isFavorite } = action.payload;
-      const nextMap = new Map(state.booksMap);
-      const target = nextMap.get(id);
-      if (target) {
-        nextMap.set(id, { ...target, isFavorite });
-      }
-      return { ...state, booksMap: nextMap };
-    }
     default:
       return state;
   }
