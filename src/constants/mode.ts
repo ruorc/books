@@ -1,8 +1,22 @@
+/**
+ * Application execution strategy modes matching structural paradigm splits.
+ */
 export const MODES = {
-  FUNCTION: 'function',
+  FUNCTIONAL: 'functional',
   CLASS: 'class',
 } as const;
 
+/**
+ * Local storage serialization key tracking the persistent layout architecture state.
+ */
 export const MODE_KEY = 'books-app-mode';
-export const DEFAULT_MODE = MODES.FUNCTION;
-export const MODE_SWITCH_DELAY = 400; 
+
+/**
+ * Default runtime execution mode applied when no user override profile exists.
+ */
+export const DEFAULT_MODE = MODES.FUNCTIONAL;
+
+/**
+ * Micro-frontend transaction delay buffer in milliseconds used to orchestrate smooth context transitions.
+ */
+export const MODE_SWITCH_DELAY = 400;

@@ -1,5 +1,6 @@
 const PROJECT_TOKEN = import.meta.env.VITE_MOCKAPI_PROJECT_TOKEN || '';
-const PROJECT_ENDPOINT = import.meta.env.VITE_MOCKAPI_ENDPOINT || '';
+// Renamed to accurately reflect that this is an optional nested URL namespace prefix
+const API_PREFIX = import.meta.env.VITE_MOCKAPI_API_PREFIX || '';
 
 // Notify the developer at runtime if environment configuration is incomplete
 if (!PROJECT_TOKEN) {
@@ -9,18 +10,20 @@ if (!PROJECT_TOKEN) {
 }
 
 // Ensure the base subdomain is formatted correctly or falls back to an empty string safely
-const baseUrl = PROJECT_TOKEN ? `https://${PROJECT_TOKEN}.mockapi.io` : '';
+const baseUrl = PROJECT_TOKEN
+  ? `https://${PROJECT_TOKEN}.mockapi.io`
+  : 'https://mockapi.io';
 
-// Normalize endpoint prefix by removing leading/trailing slashes to prevent double slashes like '//books'
-const cleanPrefix = PROJECT_ENDPOINT.replace(/^\/+|\/+$/g, '');
+// Normalize nested folder prefix by removing leading/trailing slashes to prevent double slashes like '//books'
+const cleanPrefix = API_PREFIX.replace(/^\/+|\/+$/g, '');
 const urlPrefix = cleanPrefix ? `/${cleanPrefix}` : '';
 
 export const MOCKAPI_CONFIG = {
   // Single source of truth for the primary platform URL
   BASE_URL: baseUrl,
-  
-  // Endpoints dynamically built from the validated BASE_URL
+
+  // Endpoints dynamically built from the validated BASE_URL and optional prefix folder
   ENDPOINTS: {
-    BOOKS: baseUrl ? `${baseUrl}${urlPrefix}/books` : '',
+    BOOKS: `${baseUrl}${urlPrefix}/books`,
   },
 } as const;

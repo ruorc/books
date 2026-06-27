@@ -1,23 +1,44 @@
 import type { Book, BookPayload } from '@/types/book';
-import type { RetryOptions, QueryFilters } from '@/types/api'; 
+import type { RetryOptions, QueryFilters } from '@/types/api';
 
-// 1. Read-only contract used strictly by Catalog components and search views
+/**
+ * Read-only contract used strictly by Catalog components and search views.
+ * Bound directly to the universal core entity shape.
+ */
 export interface IBooksReadService {
-  getAllBooks(page: number, limit: number, filters?: QueryFilters, retryOptions?: RetryOptions): Promise<Book[]>;
+  getAll(
+    page: number,
+    limit: number,
+    filters?: QueryFilters<Book>,
+    retryOptions?: RetryOptions
+  ): Promise<Partial<Book>[]>;
+
+  getById(id: string, retryOptions?: RetryOptions): Promise<Book>;
 }
 
-// 2. Write-only contract injected directly into creation/edition Form components
+/**
+ * Write-only contract injected directly into creation/edition Form components.
+ */
 export interface IBooksWriteService {
-  createBook(book: Omit<BookPayload, 'isFavorite'>): Promise<Book>;
-  updateBook(id: string, updatedData: Partial<BookPayload>): Promise<Book>;
-  patchBook(id: string, partialData: Partial<Book>): Promise<Book>;
-  deleteBook(id: string): Promise<Book>;
+  create(book: Omit<BookPayload, 'isFavorite'>): Promise<Book>;
+  update(id: string, updatedData: Partial<BookPayload>): Promise<Book>;
+  patch(id: string, partialData: Partial<Book>): Promise<Book>;
+  delete(id: string): Promise<Book>;
 }
 
-// 3. Unified application-level contract combining both read and write capabilities
+/**
+ * Unified application-level contract combining both read and write capabilities.
+ */
 export interface IBooksService extends IBooksReadService, IBooksWriteService {}
 
-// 4. Concrete infrastructure-level contract specifically for MockAPI edge-cases
+/**
+ * Concrete infrastructure-level contract specifically for MockAPI edge-cases.
+ * Overrides the base update method signature to support vendor auditing parameters.
+ */
 export interface IMockApiBooksService extends IBooksService {
-  updateBook(id: string, updatedData: Partial<BookPayload>, shouldUpdateTimestamp?: boolean): Promise<Book>;
+  update(
+    id: string,
+    updatedData: Partial<BookPayload>,
+    shouldUpdateTimestamp?: boolean
+  ): Promise<Book>;
 }

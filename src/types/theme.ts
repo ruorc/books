@@ -1,4 +1,7 @@
 import type { THEMES } from '@/constants/theme';
 
-// Derive the compile-time type from the runtime constant object
-export type Theme = typeof THEMES[keyof typeof THEMES];
+/**
+ * Compile-time union type extracted directly from the runtime THEMES constants.
+ * Resolves to explicitly defined user interface rendering themes.
+ */
+export type Theme = (typeof THEMES)[keyof typeof THEMES];
