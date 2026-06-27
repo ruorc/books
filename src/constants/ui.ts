@@ -23,3 +23,12 @@ export const ENGINE_LABELS = {
   FUNCTIONAL: 'Functional Components (Hooks)',
   CLASS: 'Class Components (Lifecycle)',
 } as const;
+
+/**
+ * Generates a completely static, immutable asset URL using a unique string seed.
+ * This guarantees the image remains consistent across all subsequent component renders.
+ */
+export const generateStablePicsumUrl = (): string => {
+  const uniqueSeed = crypto.randomUUID().split('-')[0];
+  return `https://picsum.photos/seed/${uniqueSeed}/200/300`;
+};
