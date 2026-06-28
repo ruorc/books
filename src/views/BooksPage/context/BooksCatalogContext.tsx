@@ -6,16 +6,22 @@ import {
   type ReactNode,
   type Dispatch,
 } from 'react';
-import { BOOKS_PER_PAGE_LIMIT } from '@/constants/ui';
+import {
+  BOOKS_PER_PAGE_LIMIT,
+  SORT_FIELDS,
+  SORT_DIRECTIONS,
+} from '@/constants/ui';
+import type { AdvancedFiltersState } from '@/types/catalogFilters';
 import type { Book } from '@/types/book';
 
-export interface CatalogState {
+export interface CatalogState extends AdvancedFiltersState {
   booksMap: Map<string, Book>;
   isLoading: boolean;
   isFetchingNextPage: boolean;
   error: string | null;
   page: number;
   hasMore: boolean;
+  favOnly: boolean;
 }
 
 export type CatalogAction =
@@ -27,7 +33,8 @@ export type CatalogAction =
     }
   | { type: 'FETCH_FAILURE'; payload: string }
   | { type: 'NEXT_PAGE' }
-  | { type: 'LOCAL_ADD_BOOK'; payload: Book };
+  | { type: 'LOCAL_ADD_BOOK'; payload: Book }
+  | { type: 'SET_ADVANCED_FILTERS'; payload: Partial<CatalogState> };
 
 const initialState: CatalogState = {
   booksMap: new Map(),
@@ -36,6 +43,13 @@ const initialState: CatalogState = {
   error: null,
   page: 1,
   hasMore: true,
+  favOnly: false,
+  globalSearch: '',
+  titleSearch: '',
+  authorSearch: '',
+  yearSearch: '',
+  sortField: SORT_FIELDS.CREATED_AT,
+  sortDirection: SORT_DIRECTIONS.DESC,
 };
 
 function catalogReducer(
@@ -76,14 +90,12 @@ function catalogReducer(
     case 'NEXT_PAGE':
       return { ...state, page: state.page + 1 };
     case 'LOCAL_ADD_BOOK': {
-      // Create a brand new Map instance to guarantee reference mutation drop
       const nextMap = new Map(state.booksMap);
       nextMap.set(action.payload.id, action.payload);
-      return {
-        ...state,
-        booksMap: nextMap,
-      };
+      return { ...state, booksMap: nextMap };
     }
+    case 'SET_ADVANCED_FILTERS':
+      return { ...state, ...action.payload };
     default:
       return state;
   }
@@ -96,7 +108,6 @@ const BooksCatalogContext = createContext<
 export function BooksCatalogProvider({ children }: { children: ReactNode }) {
   const [state, dispatch] = useReducer(catalogReducer, initialState);
   const contextValue = useMemo(() => ({ state, dispatch }), [state]);
-
   return (
     <BooksCatalogContext.Provider value={contextValue}>
       {children}
@@ -108,7 +119,7 @@ export function useBooksCatalogContext() {
   const context = useContext(BooksCatalogContext);
   if (!context)
     throw new Error(
-      'useBooksCatalogContext must be used within a BooksCatalogProvider boundary'
+      'useBooksCatalogContext must be used within a BooksCatalogProvider'
     );
   return context;
 }

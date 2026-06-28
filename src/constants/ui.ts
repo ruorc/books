@@ -17,6 +17,24 @@ export const FILTER_TYPES = {
 } as const;
 
 /**
+ * Universal fields available for strict sorting operations.
+ */
+export const SORT_FIELDS = {
+  TITLE: 'title',
+  AUTHOR: 'author',
+  YEAR: 'year',
+  CREATED_AT: 'createdAt',
+} as const;
+
+/**
+ * Sort direction parameters.
+ */
+export const SORT_DIRECTIONS = {
+  ASC: 'asc',
+  DESC: 'desc',
+} as const;
+
+/**
  * Human-readable presentation labels representing system architecture engines.
  */
 export const ENGINE_LABELS = {

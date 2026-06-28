@@ -6,37 +6,33 @@ import { useInfiniteScroll } from '@/hooks/useInfiniteScroll';
 import type { QueryFilters } from '@/types/api';
 import type { Book } from '@/types/book';
 
-interface UseBooksFetchProps {
-  search: string;
-  favOnly: boolean;
-  selectedAuthor?: string;
-  selectedYear?: string;
-}
-
-export function useBooksFetch({
-  search,
-  favOnly,
-  selectedAuthor,
-  selectedYear,
-}: UseBooksFetchProps) {
+export function useBooksFetch() {
   const { state, dispatch } = useBooksCatalogContext();
-
-  // Ref to hold the active AbortController for the initial request cycle
   const initialAbortRef = useRef<AbortController | null>(null);
 
   /**
-   * Central data transport method fetching explicit page boundaries from the service layer.
+   * Central data transport method fetching sorted boundaries from the server.
    */
   const loadBooksData = useCallback(
     async (targetPage: number, isInitial: boolean, signal: AbortSignal) => {
       try {
-        const queryFilters: QueryFilters<Book> = {};
+        // Build the filters object directly aligned with MockAPI query specs
+        const queryFilters: QueryFilters = {};
 
-        if (favOnly) queryFilters.isFavorite = true;
-        if (search.trim()) queryFilters.search = search.trim();
-        if (selectedAuthor) queryFilters.author = selectedAuthor;
-        if (selectedYear) queryFilters.year = selectedYear;
+        // 1. Pass active target filtering parameters
+        if (state.favOnly) queryFilters.isFavorite = 'true';
+        if (state.globalSearch.trim())
+          queryFilters.search = state.globalSearch.trim();
+        if (state.authorSearch.trim())
+          queryFilters.author = state.authorSearch.trim();
+        if (state.yearSearch.trim())
+          queryFilters.year = state.yearSearch.trim();
 
+        // 2. Inject NATIVE Server-side sorting parameters backed by MockAPI
+        queryFilters.sortBy = state.sortField;
+        queryFilters.order = state.sortDirection;
+
+        // Execute unified fetch matching our interface signature
         const remoteBooks = (await booksService.getAll(
           targetPage,
           BOOKS_PER_PAGE_LIMIT,
@@ -56,36 +52,40 @@ export function useBooksFetch({
         });
       }
     },
-    [search, favOnly, selectedAuthor, selectedYear, dispatch]
+    // Track sorting and search primitives directly to update callbacks memoization
+    [
+      state.globalSearch,
+      state.favOnly,
+      state.authorSearch,
+      state.yearSearch,
+      state.sortField,
+      state.sortDirection,
+      dispatch,
+    ]
   );
 
-  /**
-   * REACTIVE LIFECYCLE MONITOR:
-   * Orchestrates strict state drops and initial fetch triggers whenever filters mutate.
-   * This logic is now properly isolated here instead of being hardcoded inside the scrolling engine.
-   */
+  // Trigger drop and reload initial page whenever ANY filter or sorting metrics change
   useEffect(() => {
-    // Abort any previous pending initial request to avoid race conditions
-    if (initialAbortRef.current) {
-      initialAbortRef.current.abort();
-    }
-
+    if (initialAbortRef.current) initialAbortRef.current.abort();
     const controller = new AbortController();
     initialAbortRef.current = controller;
 
-    // Cache guard: If we are already on page 1 but maps are empty, or filters changed, fire init
     dispatch({ type: 'FETCH_INIT_START' });
     loadBooksData(1, true, controller.signal);
 
-    return () => {
-      controller.abort();
-    };
-  }, [search, favOnly, selectedAuthor, selectedYear, loadBooksData, dispatch]);
+    return () => controller.abort();
+  }, [
+    state.globalSearch,
+    state.titleSearch,
+    state.authorSearch,
+    state.yearSearch,
+    state.favOnly,
+    state.sortField,
+    state.sortDirection,
+    loadBooksData,
+    dispatch,
+  ]);
 
-  /**
-   * Universal lean infinite scroll engine execution call.
-   * Completely decoupled from any product-specific business logic parameters.
-   */
   const { loadNextPage } = useInfiniteScroll({
     page: state.page,
     isLoading: state.isLoading,
@@ -95,9 +95,5 @@ export function useBooksFetch({
     fetchDataFn: loadBooksData,
   });
 
-  return {
-    state,
-    dispatch,
-    loadNextPage,
-  };
+  return { state, dispatch, loadNextPage };
 }

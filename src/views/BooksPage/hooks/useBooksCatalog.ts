@@ -1,51 +1,37 @@
-import { useMemo, useState, useCallback } from 'react';
+import { useMemo } from 'react';
 import { useBooksFetch } from './useBooksFetch';
 import { useBooksActions } from './useBooksActions';
 
-interface UseBooksCatalogProps {
-  search: string;
-  favOnly: boolean;
-  selectedAuthor?: string;
-  selectedYear?: string;
-}
+/**
+ * Custom facade hook co-ordinating server-side fetched data streams
+ * alongside local client mutation event pipes.
+ */
+export function useBooksCatalog() {
+  // Pull states controlled directly by the server-side streaming fetch hook
+  const { state, dispatch, loadNextPage } = useBooksFetch();
 
-export function useBooksCatalog(props: UseBooksCatalogProps) {
-  const { search, favOnly, selectedAuthor, selectedYear } = props;
-  const { state, loadNextPage } = useBooksFetch(props);
-
-  // Micro-state version counter forcing clean client-side re-renders upon direct cache mutations
-  const [, setListVersion] = useState(0);
-  const forceListUpdate = useCallback(() => setListVersion((v) => v + 1), []);
-
-  // Connected direct actions mapped with stable state triggers
   const { handleDeleteBook, handleToggleFavorite } = useBooksActions({
     booksMap: state.booksMap,
-    triggerListUpdate: forceListUpdate,
+    triggerListUpdate: () =>
+      dispatch({ type: 'SET_ADVANCED_FILTERS', payload: {} }),
   });
 
+  /**
+   * Lean memory-efficient client layout.
+   * Server has already sorted and queried the data boundaries.
+   */
   const filteredBooks = useMemo(() => {
     const allBooks = Array.from(state.booksMap.values());
-    const normalizedSearch = search.trim().toLowerCase();
+    const normTitle = state.titleSearch.trim().toLowerCase();
 
+    // Client only handles fine-grained targeted title filtering if specified
     return allBooks.filter((book) => {
-      if (normalizedSearch) {
-        const matchesTitle = book.title
-          .toLowerCase()
-          .includes(normalizedSearch);
-        const matchesAuthor = book.author
-          .toLowerCase()
-          .includes(normalizedSearch);
-        if (!matchesTitle && !matchesAuthor) return false;
+      if (normTitle && !book.title.toLowerCase().includes(normTitle)) {
+        return false;
       }
-
-      if (favOnly && !book.isFavorite) return false;
-      if (selectedAuthor && book.author !== selectedAuthor) return false;
-      if (selectedYear && book.year !== selectedYear) return false;
-
       return true;
     });
-    // Connected local list state version counter as a reactive dependency link
-  }, [state.booksMap, search, favOnly, selectedAuthor, selectedYear]);
+  }, [state.booksMap, state.titleSearch]);
 
   return {
     filteredBooks,
