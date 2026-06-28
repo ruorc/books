@@ -1,4 +1,4 @@
-import { Plus, Heart, SlidersHorizontal } from 'lucide-react'; // Restructured crisp clean icons imports
+import { Plus, Heart, SlidersHorizontal, X } from 'lucide-react'; // Imported X icon
 import { useAppMode } from '@/providers/AppModeProvider';
 import { MODES } from '@/constants/mode';
 import { BookFormModal } from '@/components/BookFormModal';
@@ -19,9 +19,9 @@ export default function BooksPage() {
     isSubmitting,
     handleCreateBookSubmit,
     handleUpdateAdvancedFilters,
+    handleClearAllFilters,
   } = useBooksPageLogic();
 
-  // Highlight trigger button if any advanced parameter is active
   const isFiltersActive = !!(
     catalogState.globalSearch ||
     catalogState.titleSearch ||
@@ -33,23 +33,38 @@ export default function BooksPage() {
     <div className="space-y-6">
       {/* 1. Action Top Bar */}
       <div className="flex flex-col gap-4 border border-gray-200 bg-white p-4 rounded-xl sm:flex-row sm:items-center sm:justify-between dark:border-gray-700 dark:bg-gray-800">
-        {/* Toggle Advanced Filters Button Controller */}
-        <button
-          type="button"
-          onClick={() => setIsSearchModalOpen(true)}
-          className={`inline-flex w-full items-center justify-center gap-2 rounded-xl border px-5 py-2.5 text-sm font-semibold transition-all focus:outline-none sm:w-auto cursor-pointer ${
-            isFiltersActive
-              ? 'bg-indigo-50 border-indigo-300 text-indigo-600 dark:bg-indigo-950/40 dark:border-indigo-900/60'
-              : 'bg-white border-gray-200 text-gray-700 hover:bg-gray-50 dark:bg-gray-700 dark:border-gray-600 dark:text-gray-300 dark:hover:bg-gray-600'
-          }`}
-        >
-          <SlidersHorizontal className="h-4 w-4" />
-          <span>
-            {isFiltersActive
-              ? 'Filters Active (Manage)'
-              : 'Advanced Search & Sort'}
-          </span>
-        </button>
+        {/* Toggle Advanced Filters Button Controller Box */}
+        <div className="flex flex-col gap-2 sm:flex-row sm:items-center w-full sm:w-auto">
+          <button
+            type="button"
+            onClick={() => setIsSearchModalOpen(true)}
+            className={`inline-flex w-full items-center justify-center gap-2 rounded-xl border px-5 py-2.5 text-sm font-semibold transition-all focus:outline-none sm:w-auto cursor-pointer ${
+              isFiltersActive
+                ? 'bg-indigo-50 border-indigo-300 text-indigo-600 dark:bg-indigo-950/40 dark:border-indigo-900/60'
+                : 'bg-white border-gray-200 text-gray-700 hover:bg-gray-50 dark:bg-gray-700 dark:border-gray-600 dark:text-gray-300'
+            }`}
+          >
+            <SlidersHorizontal className="h-4 w-4" />
+            <span>
+              {isFiltersActive
+                ? 'Filters Active (Manage)'
+                : 'Advanced Search & Sort'}
+            </span>
+          </button>
+
+          {/* FIXED: Added direct on-panel reset controller button when search queries are active */}
+          {isFiltersActive && (
+            <button
+              type="button"
+              onClick={handleClearAllFilters}
+              className="inline-flex w-full items-center justify-center gap-1.5 rounded-xl border border-red-200/60 bg-red-50/50 px-4 py-2.5 text-xs font-bold text-red-600 hover:bg-red-100 transition-colors focus:outline-none sm:w-auto cursor-pointer dark:border-red-900/40 dark:bg-red-950/20 dark:text-red-400 dark:hover:bg-red-950/40"
+              title="Clear all active search terms instantly"
+            >
+              <X className="h-3.5 w-3.5" />
+              Reset Filters
+            </button>
+          )}
+        </div>
 
         {/* Action Controls Button Group */}
         <div className="flex flex-col items-center gap-3 sm:flex-row w-full sm:w-auto">
