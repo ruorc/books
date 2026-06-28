@@ -3,24 +3,12 @@ import { AlertCircle, Inbox } from 'lucide-react';
 import { BookCard } from '@/components/BookCard';
 import PageLoader from '@/components/PageLoader';
 import { useBooksCatalog } from '@/views/BooksPage/hooks/useBooksCatalog';
+import { useBooksCatalogContext } from './context/BooksCatalogContext';
 
-interface FuncCatalogProps {
-  search: string;
-  favOnly: boolean;
-  selectedAuthor: string;
-  selectedYear: string;
-  onSelectAuthor: (author: string) => void;
-  onSelectYear: (year: string) => void;
-}
+export function FuncCatalog() {
+  const { dispatch: catalogDispatch } = useBooksCatalogContext();
 
-export function FuncCatalog({
-  search,
-  favOnly,
-  selectedAuthor,
-  selectedYear,
-  onSelectAuthor,
-  onSelectYear,
-}: FuncCatalogProps) {
+  // Fixed: Invoking the facade hook completely parameterless
   const {
     filteredBooks,
     isLoading,
@@ -30,7 +18,7 @@ export function FuncCatalog({
     loadNextPage,
     handleDeleteBook,
     handleToggleFavorite,
-  } = useBooksCatalog({ search, favOnly, selectedAuthor, selectedYear });
+  } = useBooksCatalog();
 
   const observerTargetRef = useRef<HTMLDivElement>(null);
 
@@ -88,8 +76,18 @@ export function FuncCatalog({
             isFavorite={book.isFavorite}
             onToggleFavorite={handleToggleFavorite}
             onDelete={handleDeleteBook}
-            onAuthorClick={onSelectAuthor}
-            onYearClick={onSelectYear}
+            onAuthorClick={(author: string) =>
+              catalogDispatch({
+                type: 'SET_ADVANCED_FILTERS',
+                payload: { authorSearch: author },
+              })
+            }
+            onYearClick={(year: string) =>
+              catalogDispatch({
+                type: 'SET_ADVANCED_FILTERS',
+                payload: { yearSearch: year },
+              })
+            }
           />
         ))}
       </div>
