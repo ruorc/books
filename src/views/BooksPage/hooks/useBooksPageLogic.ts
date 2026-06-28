@@ -1,16 +1,18 @@
-import { useState } from 'react';
-import {
-  useBooksCatalogContext,
-  type CatalogState,
-} from '../context/BooksCatalogContext'; // Imported CatalogState definition type
+import { useEffect, useState } from 'react';
+import { useLocation, useNavigate } from 'react-router-dom';
+import { useBooksCatalogContext } from '../context/BooksCatalogContext';
 import { useSnack } from '@/providers/SnackProvider';
+import { FAVORITES_FILTER_KEY, FILTER_TYPES } from '@/constants/ui';
 import { SNACK_TYPES } from '@/constants/snack';
 import { booksService } from '@/services/booksDataServiceMockApi';
+import type { CatalogFilterType } from '@/types/filter';
 import type { BookPayload } from '@/types/book';
 
-/**
- * Custom hook isolating states and action side-effects for the main BooksPage view layer.
- */
+interface RouterLocationState {
+  filterType?: CatalogFilterType;
+  filterValue?: string;
+}
+
 export function useBooksPageLogic() {
   const { state: catalogState, dispatch } = useBooksCatalogContext();
   const { showSnack } = useSnack();
@@ -19,9 +21,48 @@ export function useBooksPageLogic() {
   const [isSearchModalOpen, setIsSearchModalOpen] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
-  /**
-   * Handles asynchronous entity creation workflow streaming responses into global contexts.
-   */
+  const location = useLocation();
+  const navigate = useNavigate();
+
+  // REACTIVE LIFECYCLE MONITOR: Intercepts cross-linking filter events from the book profile view
+  useEffect(() => {
+    const routerState = location.state as RouterLocationState;
+    if (!routerState || !routerState.filterType || !routerState.filterValue)
+      return;
+
+    const { filterType, filterValue } = routerState;
+
+    // Aligned the state dropped variables strictly with the new server-side fields schema
+    if (filterType === FILTER_TYPES.AUTHOR) {
+      dispatch({
+        type: 'SET_ADVANCED_FILTERS',
+        payload: {
+          authorSearch: filterValue,
+          globalSearch: '',
+          titleSearch: '',
+          yearSearch: '',
+        },
+      });
+    } else if (filterType === FILTER_TYPES.YEAR) {
+      dispatch({
+        type: 'SET_ADVANCED_FILTERS',
+        payload: {
+          yearSearch: filterValue,
+          globalSearch: '',
+          titleSearch: '',
+          authorSearch: '',
+        },
+      });
+    }
+
+    // Instantly wipe history state to avoid sticky loops on reload
+    navigate(location.pathname, { replace: true, state: {} });
+  }, [location, navigate, dispatch]);
+
+  useEffect(() => {
+    localStorage.setItem(FAVORITES_FILTER_KEY, String(catalogState.favOnly));
+  }, [catalogState.favOnly]);
+
   const handleCreateBookSubmit = async (
     newBookData: Omit<BookPayload, 'isFavorite'>
   ) => {
@@ -44,19 +85,14 @@ export function useBooksPageLogic() {
     }
   };
 
-  /**
-   * Dispatches unified filters updates directly to the central catalog reducer core.
-   * Fixed type evaluation bug by matching the arguments mapping to partial CatalogState attributes dictionary.
-   */
   const handleUpdateAdvancedFilters = (
-    updatedFields: Partial<CatalogState>
+    updatedFields: Partial<typeof catalogState>
   ) => {
     dispatch({ type: 'SET_ADVANCED_FILTERS', payload: updatedFields });
   };
 
   return {
     catalogState,
-    dispatch,
     isAddModalOpen,
     setIsAddModalOpen,
     isSearchModalOpen,
