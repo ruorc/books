@@ -5,11 +5,6 @@ import BooksLayout from '@/routers/layouts/BooksLayout';
 import PageLoader from '@/components/PageLoader';
 import { ROUTES } from './routes';
 
-// Import loader along with the view directly to execute non-blocking layout route pre-fetching
-import BookDetailPage, {
-  bookDetailLoader,
-} from '@/views/BookDetailPage/BookDetailPage';
-
 // Standard chunk-splitting code isolation bundles
 const AboutPage = lazy(() => import('@/views/AboutPage/AboutPage'));
 const BooksPage = lazy(() => import('@/views/BooksPage/BooksPage'));
@@ -38,9 +33,19 @@ const router = createBrowserRouter([
           },
           {
             path: ROUTES.BOOK_DETAIL,
-            element: <BookDetailPage />,
-            // Linking the declarative data stream loader straight into the routing node mapping
-            loader: bookDetailLoader,
+            // Asynchronously load both the component and its data methods together
+            lazy: async () => {
+              const {
+                default: BookDetailPage,
+                bookDetailLoader,
+                bookDetailAction,
+              } = await import('@/views/BookDetailPage/BookDetailPage');
+              return {
+                element: <BookDetailPage />,
+                loader: bookDetailLoader,
+                action: bookDetailAction,
+              };
+            },
           },
         ],
       },
