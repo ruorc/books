@@ -1,21 +1,47 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
+import { useSearchParams } from 'react-router-dom';
 import {
   useBooksCatalogContext,
   type CatalogState,
 } from '../context/BooksCatalogContext';
 import { useSnack } from '@/providers/SnackProvider';
 import { SNACK_TYPES } from '@/constants/snack';
-import { SORT_FIELDS, SORT_DIRECTIONS } from '@/constants/ui'; // Imported sorting fields
+import { SORT_FIELDS, SORT_DIRECTIONS } from '@/constants/ui'; // Cleaned up: removed unused FILTER_TYPES
 import { booksService } from '@/services/booksDataServiceMockApi';
 import type { BookPayload } from '@/types/book';
 
 export function useBooksPageLogic() {
   const { state: catalogState, dispatch } = useBooksCatalogContext();
   const { showSnack } = useSnack();
+  const [searchParams, setSearchParams] = useSearchParams();
 
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
   const [isSearchModalOpen, setIsSearchModalOpen] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
+
+  /**
+   * ON-MOUNT URL SYNCHRONIZER:
+   * Reads raw native search queries (?author=...&year=...) straight from the browser address bar
+   * upon mount and injects them atomically inside the global context state reducer.
+   */
+  useEffect(() => {
+    const authorParam = searchParams.get('author') || '';
+    const yearParam = searchParams.get('year') || '';
+
+    if (authorParam || yearParam) {
+      dispatch({
+        type: 'SET_ADVANCED_FILTERS',
+        payload: {
+          authorSearch: authorParam,
+          yearSearch: yearParam,
+          globalSearch: '',
+          titleSearch: '',
+        },
+      });
+      // Clear URL parameters to keep address string sterile after successful context injection
+      setSearchParams({}, { replace: true });
+    }
+  }, [searchParams, dispatch, setSearchParams]);
 
   const handleCreateBookSubmit = async (
     newBookData: Omit<BookPayload, 'isFavorite'>
@@ -45,10 +71,6 @@ export function useBooksPageLogic() {
     dispatch({ type: 'SET_ADVANCED_FILTERS', payload: updatedFields });
   };
 
-  /**
-   * Atomic macro trigger flushing out all active query states parameters
-   * straight from the layout dashboard without entering modals bounds.
-   */
   const handleClearAllFilters = () => {
     dispatch({
       type: 'SET_ADVANCED_FILTERS',
