@@ -10,6 +10,11 @@ export class MockApiBooksService
   extends HttpBooksService
   implements IMockApiBooksService
 {
+  constructor(mockApiEndpointUrl: string) {
+    // Explicitly pass the unique vendor-specific absolute URL to the inheritance chain
+    super(mockApiEndpointUrl);
+  }
+
   /**
    * Normalizes boolean values to strings and intercepts 404 responses to fallback empty arrays safely.
    */
@@ -23,10 +28,11 @@ export class MockApiBooksService
       const sanitizedFilters: QueryFilters<Book> = {};
 
       Object.entries(filters).forEach(([key, value]) => {
+        // MockAPI filters primitives by matching explicit string values strictly
         if (value === true || value === 'true') {
-          sanitizedFilters[key] = 'true';
+          sanitizedFilters[key] = 'true' as any;
         } else if (value === false || value === 'false') {
-          sanitizedFilters[key] = 'false';
+          sanitizedFilters[key] = 'false' as any;
         } else if (value !== undefined && value !== '') {
           sanitizedFilters[key] = value as any;
         }
@@ -34,6 +40,7 @@ export class MockApiBooksService
 
       return await super.getAll(page, limit, sanitizedFilters, retryOptions);
     } catch (error) {
+      // MockAPI natively triggers a 404 status exception instead of sending an empty dataset [].
       if (error instanceof Error && error.message.includes('Status: 404')) {
         return [];
       }
@@ -53,6 +60,7 @@ export class MockApiBooksService
       updatedAt: currentIsoTime,
     };
 
+    // This correctly bubbles up to HttpBooksService.create which appends 'isFavorite: false'
     return await super.create(enrichedPayload);
   }
 
@@ -75,6 +83,7 @@ export class MockApiBooksService
       enrichedPayload.updatedAt = new Date().toISOString();
     }
 
+    // Skips HttpBooksService (which doesn't have an update) and triggers HttpBaseService.update natively
     return await super.update(id, enrichedPayload);
   }
 
@@ -94,6 +103,7 @@ export class MockApiBooksService
         ...partialData,
       };
 
+      // Delegate directly to the overridden update method above to ensure clean execution and timestamps
       return await this.update(id, fullUpdatedData, !isOnlyFavoriteToggle);
     } catch (error) {
       const errorMessage =

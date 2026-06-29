@@ -9,21 +9,25 @@ if (!PROJECT_TOKEN) {
   );
 }
 
-// Ensure the base subdomain is formatted correctly or falls back to an empty string safely
-const baseUrl = PROJECT_TOKEN
+// Ensure the base subdomain is formatted correctly or falls back to a mock domain safely
+const baseUrlString = PROJECT_TOKEN
   ? `https://${PROJECT_TOKEN}.mockapi.io`
-  : 'https://mockapi.io';
+  : 'https://missing-token.mockapi.io';
 
 // Normalize nested folder prefix by removing leading/trailing slashes to prevent double slashes like '//books'
 const cleanPrefix = API_PREFIX.replace(/^\/+|\/+$/g, '');
-const urlPrefix = cleanPrefix ? `/${cleanPrefix}` : '';
+const urlPrefix = cleanPrefix ? `/${cleanPrefix}/` : '/';
 
+/**
+ * Single source of truth for MockAPI network topography.
+ * Guarantees valid absolute URL construction for consumption by HttpBaseService layers.
+ */
 export const MOCKAPI_CONFIG = {
   // Single source of truth for the primary platform URL
-  BASE_URL: baseUrl,
+  BASE_URL: baseUrlString,
 
-  // Endpoints dynamically built from the validated BASE_URL and optional prefix folder
+  // Endpoints dynamically built from the validated BASE_URL and optional prefix folder using native URL resolution
   ENDPOINTS: {
-    BOOKS: `${baseUrl}${urlPrefix}/books`,
+    BOOKS: new URL(`${urlPrefix}books`, baseUrlString).toString(),
   },
 } as const;

@@ -6,15 +6,47 @@ import type { RetryOptions, QueryFilters } from '@/types/api';
  * T represents the main core entity model, TPayload represents creation/update specifications.
  */
 export abstract class HttpBaseService<T, TPayload> {
-  protected readonly baseUrl: string;
+  protected readonly baseUrl: URL;
 
   constructor(endpointUrl: string) {
-    if (!endpointUrl) {
-      console.error(
-        `[${this.constructor.name}] Critical configuration error: base endpoint URL is missing.`
+    this.baseUrl = this.validateAndNormalizeUrl(endpointUrl);
+  }
+
+  /**
+   * Validates, cleans, and normalizes the endpoint URL using native Web APIs.
+   */
+  private validateAndNormalizeUrl(url: string): URL {
+    if (!url || typeof url !== 'string') {
+      throw new Error(
+        `[${this.constructor.name}] Critical configuration error: Base endpoint URL is missing.`
       );
     }
-    this.baseUrl = endpointUrl;
+
+    // Normalize backslashes from potential typo concatenations
+    const sanitizedUrl = url.replace(/\\/g, '/');
+
+    // 1. Enforce strict web URL compliance using native validation (handles missing domains and hostnames)
+    if (!URL.canParse(sanitizedUrl)) {
+      throw new Error(
+        `[${this.constructor.name}] Configuration error: Provided string is not a valid absolute URL.`
+      );
+    }
+
+    const parsedUrl = new URL(sanitizedUrl);
+
+    // 2. Restrict to secure web communication protocols only
+    if (parsedUrl.protocol !== 'http:' && parsedUrl.protocol !== 'https:') {
+      throw new Error(
+        `[${this.constructor.name}] Security error: Only HTTP and HTTPS protocols are allowed.`
+      );
+    }
+
+    // 3. Clean up trailing slashes inside the pathname structure to avoid duplicate slash bugs
+    if (parsedUrl.pathname.endsWith('/')) {
+      parsedUrl.pathname = parsedUrl.pathname.replace(/\/+$/, '');
+    }
+
+    return parsedUrl;
   }
 
   /**
@@ -28,22 +60,53 @@ export abstract class HttpBaseService<T, TPayload> {
   }
 
   /**
-   * Implements exponential backoff strategy for transparent connection recovery drops.
+   * Shared request wrapper to inject default headers and handle HTTP status validation.
+   */
+  protected async request<R>(url: string, options?: RequestInit): Promise<R> {
+    const response = await fetch(url, {
+      ...options,
+      headers: {
+        'Content-Type': 'application/json',
+        ...options?.headers,
+      },
+    });
+
+    if (!response.ok) {
+      throw new Error(`HTTP error. Status: ${response.status}`);
+    }
+
+    return response.status === 204 ? ({} as R) : await response.json();
+  }
+
+  /**
+   * Implements exponential backoff strategy with strict AbortSignal monitoring.
    */
   protected async retryNetworkRequest<R>(
     fn: () => Promise<R>,
     retries: number,
-    delay: number
+    delay: number,
+    signal?: AbortSignal
   ): Promise<R> {
     try {
       return await fn();
     } catch (error) {
+      if (signal?.aborted) throw signal.reason || new Error('Aborted');
+      if (error instanceof Error && error.name === 'AbortError') throw error;
+
       if (retries > 0) {
         console.warn(
           `[${this.constructor.name}] Network failed. Retrying in ${delay}ms... (${retries} attempts left)`
         );
-        await new Promise((resolve) => setTimeout(resolve, delay));
-        return this.retryNetworkRequest(fn, retries - 1, delay * 1.5);
+
+        await new Promise((resolve, reject) => {
+          const timer = setTimeout(resolve, delay);
+          signal?.addEventListener('abort', () => {
+            clearTimeout(timer);
+            reject(signal.reason || new Error('Aborted'));
+          });
+        });
+
+        return this.retryNetworkRequest(fn, retries - 1, delay * 1.5, signal);
       }
       throw error;
     }
@@ -65,7 +128,8 @@ export abstract class HttpBaseService<T, TPayload> {
     } = retryOptions;
 
     const executeFetch = async () => {
-      const url = new URL(this.baseUrl);
+      // Safely clone the pre-validated URL object to prevent instance mutation
+      const url = new URL(this.baseUrl.toString());
       url.searchParams.append('page', String(page));
       url.searchParams.append('limit', String(limit));
 
@@ -79,14 +143,16 @@ export abstract class HttpBaseService<T, TPayload> {
         }
       });
 
-      const response = await fetch(url.toString(), { signal });
-      if (!response.ok)
-        throw new Error(`HTTP error. Status: ${response.status}`);
-      return await response.json();
+      return this.request<Partial<T>[]>(url.toString(), { signal });
     };
 
     try {
-      return await this.retryNetworkRequest(executeFetch, retries, delay);
+      return await this.retryNetworkRequest(
+        executeFetch,
+        retries,
+        delay,
+        signal
+      );
     } catch (error) {
       if (error instanceof Error && error.name === 'AbortError') throw error;
       this.handleError(error, 'Failed to retrieve the data stream');
@@ -103,15 +169,14 @@ export abstract class HttpBaseService<T, TPayload> {
       signal,
     } = retryOptions;
 
-    const executeFetch = async () => {
-      const response = await fetch(`${this.baseUrl}/${id}`, { signal });
-      if (!response.ok)
-        throw new Error(`HTTP error. Status: ${response.status}`);
-      return await response.json();
-    };
-
     try {
-      return await this.retryNetworkRequest(executeFetch, retries, delay);
+      const targetUrl = `${this.baseUrl.origin}${this.baseUrl.pathname}/${id}`;
+      return await this.retryNetworkRequest(
+        () => this.request<T>(targetUrl, { signal }),
+        retries,
+        delay,
+        signal
+      );
     } catch (error) {
       if (error instanceof Error && error.name === 'AbortError') throw error;
       this.handleError(error, `Failed to retrieve item by ID ${id}`);
@@ -123,14 +188,10 @@ export abstract class HttpBaseService<T, TPayload> {
    */
   async create(payload: TPayload): Promise<T> {
     try {
-      const response = await fetch(this.baseUrl, {
+      return await this.request<T>(this.baseUrl.toString(), {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(payload),
       });
-      if (!response.ok)
-        throw new Error(`HTTP error. Status: ${response.status}`);
-      return await response.json();
     } catch (error) {
       this.handleError(error, 'Failed to save a new entry');
     }
@@ -141,14 +202,11 @@ export abstract class HttpBaseService<T, TPayload> {
    */
   async update(id: string, updatedData: Partial<TPayload>): Promise<T> {
     try {
-      const response = await fetch(`${this.baseUrl}/${id}`, {
+      const targetUrl = `${this.baseUrl.origin}${this.baseUrl.pathname}/${id}`;
+      return await this.request<T>(targetUrl, {
         method: 'PUT',
-        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(updatedData),
       });
-      if (!response.ok)
-        throw new Error(`HTTP error. Status: ${response.status}`);
-      return await response.json();
     } catch (error) {
       this.handleError(error, `Failed to replace data for ID ${id}`);
     }
@@ -159,14 +217,11 @@ export abstract class HttpBaseService<T, TPayload> {
    */
   async patch(id: string, partialData: Partial<T>): Promise<T> {
     try {
-      const response = await fetch(`${this.baseUrl}/${id}`, {
+      const targetUrl = `${this.baseUrl.origin}${this.baseUrl.pathname}/${id}`;
+      return await this.request<T>(targetUrl, {
         method: 'PATCH',
-        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(partialData),
       });
-      if (!response.ok)
-        throw new Error(`HTTP error. Status: ${response.status}`);
-      return await response.json();
     } catch (error) {
       this.handleError(error, `Failed to partially patch ID ${id}`);
     }
@@ -177,12 +232,10 @@ export abstract class HttpBaseService<T, TPayload> {
    */
   async delete(id: string): Promise<T> {
     try {
-      const response = await fetch(`${this.baseUrl}/${id}`, {
+      const targetUrl = `${this.baseUrl.origin}${this.baseUrl.pathname}/${id}`;
+      return await this.request<T>(targetUrl, {
         method: 'DELETE',
       });
-      if (!response.ok)
-        throw new Error(`HTTP error. Status: ${response.status}`);
-      return await response.json();
     } catch (error) {
       this.handleError(error, `Failed to delete record for ID ${id}`);
     }

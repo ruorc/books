@@ -9,6 +9,11 @@ export class HttpBooksService
   extends HttpBaseService<Book, BookPayload>
   implements IBooksService
 {
+  constructor(endpointUrl: string) {
+    // Pass the external endpoint configuration directly up to the HTTP transport layer validation matrix
+    super(endpointUrl);
+  }
+
   /**
    * Seeds missing runtime UI flags natively on baseline insertion procedures.
    */
