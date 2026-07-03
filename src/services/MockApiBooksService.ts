@@ -5,11 +5,16 @@ import type { IMockApiBooksService } from '@/types/booksService';
 
 /**
  * MockAPI adapter overriding default mechanisms to patch vendor constraints.
+ * Implements strict type safety across all operations without relying on 'any'.
  */
 export class MockApiBooksService
   extends HttpBooksService
   implements IMockApiBooksService
 {
+  /**
+   * Initializes the MockAPI service with a vendor-specific absolute URL.
+   * @param mockApiEndpointUrl - The absolute URL pointing to the MockAPI endpoint.
+   */
   constructor(mockApiEndpointUrl: string) {
     // Explicitly pass the unique vendor-specific absolute URL to the inheritance chain
     super(mockApiEndpointUrl);
@@ -17,6 +22,12 @@ export class MockApiBooksService
 
   /**
    * Normalizes boolean values to strings and intercepts 404 responses to fallback empty arrays safely.
+   *
+   * @param page - The current page number for pagination.
+   * @param limit - The maximum number of records per page.
+   * @param filters - Active filtering criteria mapped directly to the Book model properties.
+   * @param retryOptions - Policy configuration managing automated request retries.
+   * @returns A promise resolving to an array of partial book records.
    */
   override async getAll(
     page: number,
@@ -30,11 +41,12 @@ export class MockApiBooksService
       Object.entries(filters).forEach(([key, value]) => {
         // MockAPI filters primitives by matching explicit string values strictly
         if (value === true || value === 'true') {
-          sanitizedFilters[key] = 'true' as any;
+          sanitizedFilters[key] = 'true';
         } else if (value === false || value === 'false') {
-          sanitizedFilters[key] = 'false' as any;
+          sanitizedFilters[key] = 'false';
         } else if (value !== undefined && value !== '') {
-          sanitizedFilters[key] = value as any;
+          // Explicitly cast to the permitted primitive types of CustomParams
+          sanitizedFilters[key] = value as string | number | boolean;
         }
       });
 
@@ -44,12 +56,16 @@ export class MockApiBooksService
       if (error instanceof Error && error.message.includes('Status: 404')) {
         return [];
       }
+
       throw error;
     }
   }
 
   /**
    * Stamps auditing ISO timestamp strings during initial record injection processes.
+   *
+   * @param book - The payload containing the book details, excluding the favorite status.
+   * @returns A promise resolving to the created Book instance.
    */
   override async create(book: Omit<BookPayload, 'isFavorite'>): Promise<Book> {
     const currentIsoTime = new Date().toISOString();
@@ -66,14 +82,24 @@ export class MockApiBooksService
 
   /**
    * Updates targeted fields and cleans out hazardous immutable parameters like 'id' from payloads.
+   *
+   * @param id - The unique identifier of the book entity to update.
+   * @param updatedData - The partial payload containing data fields slated for update.
+   * @param shouldUpdateTimestamp - Dictates whether the auditing timestamp must be incremented.
+   * @returns A promise resolving to the updated Book instance.
    */
   override async update(
     id: string,
     updatedData: Partial<BookPayload>,
     shouldUpdateTimestamp: boolean = true
   ): Promise<Book> {
-    // Destructure to isolate and strip immutable id field preventing 400 Bad Request responses
-    const { id: _, ...cleanData } = updatedData as any;
+    // Create a shallow copy to prevent mutation of the original argument
+    const cleanData: Partial<BookPayload> & { id?: string } = {
+      ...updatedData,
+    };
+
+    // Safely delete the hazardous immutable id property
+    delete cleanData.id;
 
     const enrichedPayload: Partial<BookPayload> & { updatedAt?: string } = {
       ...cleanData,
@@ -89,6 +115,11 @@ export class MockApiBooksService
 
   /**
    * Recomposes a virtual patch transaction utilizing standard retry-protected workflow calls.
+   *
+   * @param id - The unique identifier of the target book to update.
+   * @param partialData - A subset of fields representing the modification delta.
+   * @returns A promise resolving to the fully patched Book instance.
+   * @throws {Error} Wraps the underlying transport exception within the 'cause' property.
    */
   override async patch(id: string, partialData: Partial<Book>): Promise<Book> {
     try {
@@ -108,12 +139,18 @@ export class MockApiBooksService
     } catch (error) {
       const errorMessage =
         error instanceof Error ? error.message : 'Unknown transport error';
+
       console.error(
         `[MockApiBooksService Overridden Patch Error] Failed to delegate patch for book ID ${id}:`,
         error
       );
+
+      // Attaching the original error inside the 'cause' option property for enhanced debugging
       throw new Error(
-        `Failed to patch book fields on MockAPI: ${errorMessage}`
+        `Failed to patch book fields on MockAPI: ${errorMessage}`,
+        {
+          cause: error,
+        }
       );
     }
   }

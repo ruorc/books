@@ -1,5 +1,11 @@
 import { MOCKAPI_CONFIG } from '@/config/mockapi';
-import { MockApiBooksService } from './MockApiBooksService'; 
+import { MockApiBooksService } from './MockApiBooksService';
 
-// Initialize the specialized MockAPI child service with specific project configuration endpoints parameters
-export const booksService = new MockApiBooksService(MOCKAPI_CONFIG.ENDPOINTS.BOOKS);
+/**
+ * Singleton instance of the specialized MockAPI books service.
+ * Pre-configured with the vendor-specific project endpoint configuration.
+ * Use this exported instance directly across components or state managers for server operations.
+ */
+export const booksService = new MockApiBooksService(
+  MOCKAPI_CONFIG.ENDPOINTS.BOOKS
+);
