@@ -1,0 +1,18 @@
+# http://editorconfig.org
+root = true
+
+[*]
+# Use Unix-style newlines with a newline at the end of every file
+end_of_line = lf
+insert_final_newline = true
+
+# Enforce standard web development indentation settings
+indent_style = space
+indent_size = 2
+
+# Remove trailing whitespace characters automatically upon saving
+trim_trailing_whitespace = true
+
+[*.md]
+# Markdown files permit trailing spaces for intentional line breaks
+trim_trailing_whitespace = false
