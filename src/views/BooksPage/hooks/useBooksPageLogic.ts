@@ -4,7 +4,7 @@ import {
   useBooksCatalogContext,
   type CatalogState,
 } from '../context/BooksCatalogContext';
-import { useSnack } from '@/providers/SnackProvider';
+import { useSnack } from '@/context/Snack/SnackProvider';
 import { SNACK_TYPES } from '@/constants/snack';
 import { SORT_FIELDS, SORT_DIRECTIONS } from '@/constants/ui'; // Cleaned up: removed unused FILTER_TYPES
 import { booksService } from '@/services/booksDataServiceMockApi';

@@ -1,4 +1,4 @@
-import { useAppMode } from '@/providers/AppModeProvider';
+import { useAppMode } from '@/context/AppMode/AppModeProvider';
 import { useProjectTheme } from '@/providers/ProjectThemeProvider';
 import { Code2, Terminal, Palette, Sliders } from 'lucide-react';
 import { MODES } from '@/constants/mode';

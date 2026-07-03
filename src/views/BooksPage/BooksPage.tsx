@@ -1,5 +1,5 @@
 import { Plus, Heart, SlidersHorizontal, X } from 'lucide-react'; // Imported X icon
-import { useAppMode } from '@/providers/AppModeProvider';
+import { useAppMode } from '@/context/AppMode/AppModeProvider';
 import { MODES } from '@/constants/mode';
 import { BookFormModal } from '@/components/BookFormModal';
 import { AdvancedSearchModal } from '@/components/AdvancedSearchModal';

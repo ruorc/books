@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { booksService } from '@/services/booksDataServiceMockApi';
-import { useSnack } from '@/providers/SnackProvider';
+import { useSnack } from '@/context/Snack/SnackProvider';
 import { SNACK_TYPES } from '@/constants/snack';
 import { ROUTES } from '@/routers/routes';
 import type { CatalogFilterType } from '@/types/filter';

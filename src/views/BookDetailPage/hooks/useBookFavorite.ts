@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { booksService } from '@/services/booksDataServiceMockApi';
-import { useSnack } from '@/providers/SnackProvider';
+import { useSnack } from '@/context/Snack/SnackProvider';
 import { SNACK_TYPES } from '@/constants/snack';
 import type { Book } from '@/types/book';
 
