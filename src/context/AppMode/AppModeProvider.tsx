@@ -1,6 +1,4 @@
 import {
-  createContext,
-  useContext,
   useEffect,
   useState,
   useRef,
@@ -9,20 +7,19 @@ import {
   type PropsWithChildren,
 } from 'react';
 import { MODE_KEY, DEFAULT_MODE, MODE_SWITCH_DELAY } from '@/constants/mode';
+import { AppModeContext, isValidAppMode } from './AppModeContext';
 import type { AppMode } from '@/types/mode';
 
-interface AppModeContextType {
-  mode: AppMode;
-  setMode: (mode: AppMode) => void;
-  isModeLoading: boolean;
-}
-
-const AppModeContext = createContext<AppModeContextType | undefined>(undefined);
-
+/**
+ * Context Provider encapsulating paradigm-switching mechanics and storage tracking.
+ * Exclusively exports the React component node layout to satisfy Fast Refresh compiler rules.
+ */
 export function AppModeProvider({ children }: PropsWithChildren) {
   const [mode, setModeState] = useState<AppMode>(() => {
     const savedMode = localStorage.getItem(MODE_KEY);
-    return (savedMode as AppMode) || DEFAULT_MODE;
+
+    // Explicitly validate storage values against known invariants to maintain runtime safety
+    return isValidAppMode(savedMode) ? savedMode : DEFAULT_MODE;
   });
 
   const [isModeLoading, setIsModeLoading] = useState(false);
@@ -33,8 +30,10 @@ export function AppModeProvider({ children }: PropsWithChildren) {
 
   useEffect(() => {
     isMountedRef.current = true;
+
     return () => {
       isMountedRef.current = false;
+
       if (timeoutRef.current) clearTimeout(timeoutRef.current);
     };
   }, []);
@@ -59,6 +58,7 @@ export function AppModeProvider({ children }: PropsWithChildren) {
           setModeState(newMode);
           setIsModeLoading(false);
         }
+
         timeoutRef.current = null;
       }, MODE_SWITCH_DELAY);
     },
@@ -80,12 +80,4 @@ export function AppModeProvider({ children }: PropsWithChildren) {
       {children}
     </AppModeContext.Provider>
   );
-}
-
-export function useAppMode() {
-  const context = useContext(AppModeContext);
-  if (context === undefined) {
-    throw new Error('useAppMode must be used within an AppModeProvider');
-  }
-  return context;
 }

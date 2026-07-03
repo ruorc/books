@@ -1,6 +1,4 @@
 import {
-  createContext,
-  useContext,
   useEffect,
   useState,
   useMemo,
@@ -8,20 +6,19 @@ import {
   type PropsWithChildren,
 } from 'react';
 import { THEME_KEY, DEFAULT_THEME, THEMES } from '@/constants/theme';
+import { ThemeContext, isValidTheme } from './ThemeContext';
 import type { Theme } from '@/types/theme';
 
-interface ThemeContextType {
-  theme: Theme;
-  setTheme: (theme: Theme) => void;
-  isDark: boolean;
-}
-
-const ThemeContext = createContext<ThemeContextType | undefined>(undefined);
-
+/**
+ * Context Provider encapsulating color palette theme management, hardware preferences, and storage tracking.
+ * Exclusively exports the React component node layout to satisfy Fast Refresh compiler rules.
+ */
 export function ProjectThemeProvider({ children }: PropsWithChildren) {
   const [theme, setThemeState] = useState<Theme>(() => {
     const saved = localStorage.getItem(THEME_KEY);
-    return (saved as Theme) || DEFAULT_THEME;
+
+    // Explicitly validate storage values against known invariants to maintain runtime safety
+    return isValidTheme(saved) ? saved : DEFAULT_THEME;
   });
 
   const [systemPrefersDark, setSystemPrefersDark] = useState(
@@ -38,6 +35,7 @@ export function ProjectThemeProvider({ children }: PropsWithChildren) {
       setSystemPrefersDark(e.matches);
 
     mediaQuery.addEventListener('change', handleChange);
+
     return () => mediaQuery.removeEventListener('change', handleChange);
   }, []);
 
@@ -59,11 +57,14 @@ export function ProjectThemeProvider({ children }: PropsWithChildren) {
   useEffect(() => {
     const handleStorageChange = (e: StorageEvent) => {
       if (e.key === THEME_KEY) {
-        setThemeState((e.newValue as Theme) || DEFAULT_THEME);
+        const newValue = e.newValue;
+
+        setThemeState(isValidTheme(newValue) ? newValue : DEFAULT_THEME);
       }
     };
 
     window.addEventListener('storage', handleStorageChange);
+
     return () => window.removeEventListener('storage', handleStorageChange);
   }, []);
 
@@ -89,14 +90,4 @@ export function ProjectThemeProvider({ children }: PropsWithChildren) {
       {children}
     </ThemeContext.Provider>
   );
-}
-
-export function useProjectTheme() {
-  const context = useContext(ThemeContext);
-  if (!context) {
-    throw new Error(
-      'useProjectTheme must be used within a ProjectThemeProvider'
-    );
-  }
-  return context;
 }

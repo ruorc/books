@@ -1,6 +1,4 @@
 import {
-  createContext,
-  useContext,
   useState,
   useCallback,
   useRef,
@@ -8,21 +6,13 @@ import {
   type PropsWithChildren,
 } from 'react';
 import { ConfirmModal } from '@/components/ConfirmModal';
+import { ConfirmContext } from './ConfirmContext';
+import type { ConfirmOptions } from './ConfirmContext';
 
-interface ConfirmOptions {
-  title: string;
-  description: string;
-  confirmLabel?: string;
-  cancelLabel?: string;
-  isDanger?: boolean;
-}
-
-interface ConfirmContextType {
-  showConfirm: (options: ConfirmOptions) => Promise<boolean>;
-}
-
-const ConfirmContext = createContext<ConfirmContextType | undefined>(undefined);
-
+/**
+ * Context Provider managing a centralized asynchronous confirmation lifecycle pipeline.
+ * Injects a singular portal-ready instance of the accessible ConfirmModal to preserve memory.
+ */
 export function ConfirmProvider({ children }: PropsWithChildren) {
   const [isOpen, setIsOpen] = useState(false);
   const [modalOptions, setModalOptions] = useState<ConfirmOptions>({
@@ -54,6 +44,7 @@ export function ConfirmProvider({ children }: PropsWithChildren) {
    */
   const handleConfirm = useCallback(() => {
     setIsOpen(false);
+
     if (resolveRef.current) {
       resolveRef.current(true);
       resolveRef.current = null;
@@ -65,6 +56,7 @@ export function ConfirmProvider({ children }: PropsWithChildren) {
    */
   const handleClose = useCallback(() => {
     setIsOpen(false);
+
     if (resolveRef.current) {
       resolveRef.current(false);
       resolveRef.current = null;
@@ -91,15 +83,4 @@ export function ConfirmProvider({ children }: PropsWithChildren) {
       />
     </ConfirmContext.Provider>
   );
-}
-
-/**
- * Custom hook to safely grab the functional async confirm trigger context pipeline.
- */
-export function useConfirm() {
-  const context = useContext(ConfirmContext);
-  if (!context) {
-    throw new Error('useConfirm must be used within a ConfirmProvider');
-  }
-  return context;
 }
