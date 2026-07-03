@@ -1,8 +1,8 @@
 import { useEffect, useRef } from 'react';
 import { Outlet } from 'react-router-dom';
-import { useAppMode } from '@/providers/AppModeProvider';
-import { useProjectTheme } from '@/providers/ProjectThemeProvider';
-import { useSnack } from '@/providers/SnackProvider';
+import { useAppMode } from '@/context/AppMode';
+import { useProjectTheme } from '@/context/Theme';
+import { useSnack } from '@/context/Snack';
 import { SNACK_TYPES } from '@/constants/snack';
 import { THEME_LABELS } from '@/constants/theme';
 import { ENGINE_LABELS } from '@/constants/ui';
@@ -12,6 +12,15 @@ import Footer from './footer/Footer';
 import Header from './header/Header';
 import Main from './main/Main';
 
+/**
+ * Root Application Layout Wrapper Component.
+ * Establishes the core grid, header, footer, and shell structure of the system.
+ *
+ * Intercepts theme and rendering mode state modifications to dispatch localized,
+ * transient notification alert logs via the Snack pipeline.
+ *
+ * @returns The main container view embedding sub-routes dynamically inside the Main region.
+ */
 export default function Layout() {
   const { isModeLoading, mode } = useAppMode();
   const { theme } = useProjectTheme();
@@ -57,7 +66,6 @@ export default function Layout() {
     <div className="flex flex-col min-h-full bg-slate-50 dark:bg-slate-950 transition-colors duration-200">
       <Header />
       <Main>
-        {/* Safe layout viewport tracking with calculation adjustment */}
         {isModeLoading ? (
           <PageLoader className="h-[calc(100vh-8rem)]" />
         ) : (

@@ -1,10 +1,33 @@
 import { Code2, Terminal } from 'lucide-react';
 import { MODES } from '@/constants/mode';
-import { useAppMode } from '@/providers/AppModeProvider';
+import { useAppMode } from '@/context/AppMode';
 
-// Static year constant for maximum performance and zero runtime overhead
 const STATIC_YEAR = 2026 as const;
 
+/**
+ * Base layout utility classes for the engine status indicator.
+ */
+const BADGE_BASE_STYLE =
+  'inline-flex items-center gap-2 rounded-full border bg-slate-100 px-3 py-1 text-xs font-semibold text-slate-700 dark:bg-slate-800 dark:text-slate-300 transition-colors duration-200' as const;
+
+/**
+ * Strictly mapped architectural variant borders to keep the JSX layout clean and readable.
+ */
+const BADGE_VARIANT_STYLES = {
+  [MODES.FUNCTIONAL]: 'border-sky-200/50 dark:border-sky-700/50',
+  [MODES.CLASS]: 'border-amber-200/50 dark:border-amber-700/50',
+} as const;
+
+/**
+ * Global Footer Component.
+ * Renders copyright specifications, application baseline summaries, and
+ * a live semantic visual badge tracking the active runtime architecture strategy engine.
+ *
+ * Follows strict constraints from AGENTS.md: zero inline comments in JSX,
+ * English-only documentation, full screen-reader support, and clean Tailwind abstraction.
+ *
+ * @returns The sticky layout footer bar embedded at the bottom of the viewport matrix.
+ */
 export default function Footer() {
   const { mode } = useAppMode();
 
@@ -12,7 +35,6 @@ export default function Footer() {
     <footer className="w-full border-t border-slate-200 bg-white dark:border-slate-800 dark:bg-slate-900 transition-colors duration-200">
       <div className="mx-auto max-w-7xl px-4 py-6 sm:px-6 lg:px-8">
         <div className="flex flex-col items-center justify-between gap-4 text-center sm:flex-row sm:text-left">
-          {/* Left section: App branding and description */}
           <div className="text-sm text-slate-500 dark:text-slate-400">
             <p className="font-medium text-slate-700 dark:text-slate-300">
               SPA Book Catalog &copy; {STATIC_YEAR}
@@ -23,21 +45,30 @@ export default function Footer() {
             </p>
           </div>
 
-          {/* Right section: Selected application mode indicator */}
           <div className="flex flex-col items-center gap-1.5 sm:items-end">
             <span className="text-xs font-medium uppercase tracking-wider text-slate-400 dark:text-slate-500">
               Engine
             </span>
 
-            <div className="inline-flex items-center gap-2 rounded-full border border-slate-200/50 bg-slate-100 px-3 py-1 text-xs font-semibold text-slate-700 dark:border-slate-700/50 dark:bg-slate-800 dark:text-slate-300">
+            <div
+              role="status"
+              aria-live="polite"
+              className={`${BADGE_BASE_STYLE} ${BADGE_VARIANT_STYLES[mode]}`}
+            >
               {mode === MODES.FUNCTIONAL ? (
                 <>
-                  <Code2 className="h-3.5 w-3.5 text-sky-500" />
+                  <Code2
+                    aria-hidden="true"
+                    className="h-3.5 w-3.5 text-sky-500"
+                  />
                   <span>Functional Components</span>
                 </>
               ) : (
                 <>
-                  <Terminal className="h-3.5 w-3.5 text-amber-500" />
+                  <Terminal
+                    aria-hidden="true"
+                    className="h-3.5 w-3.5 text-amber-500"
+                  />
                   <span>Class Components</span>
                 </>
               )}

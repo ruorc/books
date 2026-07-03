@@ -3,16 +3,79 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { AlertTriangle, X } from 'lucide-react';
 
 interface ConfirmModalProps {
-  isOpen: boolean;
-  title: string;
-  description: string;
-  confirmLabel?: string;
-  cancelLabel?: string;
-  onConfirm: () => void;
-  onClose: () => void;
-  isDanger?: boolean;
+  readonly isOpen: boolean;
+  readonly title: string;
+  readonly description: string;
+  readonly confirmLabel?: string;
+  readonly cancelLabel?: string;
+  readonly onConfirm: () => void;
+  readonly onClose: () => void;
+  readonly isDanger?: boolean;
 }
 
+/**
+ * Base layout formatting classes applied to the root container overlay.
+ */
+const OVERLAY_STYLE =
+  'fixed inset-0 z-50 flex items-center justify-center p-4 overflow-y-auto' as const;
+
+/**
+ * Backdrop backdrop mask overlay background blending layout classes.
+ */
+const BACKDROP_STYLE =
+  'fixed inset-0 bg-slate-900/40 backdrop-blur-sm dark:bg-slate-950/60' as const;
+
+/**
+ * Centered modal structural card dialog presentation styles matrix wrapper.
+ */
+const MODAL_CARD_STYLE =
+  'relative w-full max-w-md rounded-2xl border border-slate-200 bg-white p-6 shadow-xl dark:border-slate-800 dark:bg-slate-900 transition-colors duration-200 z-10' as const;
+
+/**
+ * Generic control style applied to the top dimensional interactive close icon.
+ */
+const CLOSE_BUTTON_STYLE =
+  'absolute top-4 right-4 text-slate-400 hover:text-slate-600 dark:hover:text-slate-300 focus:outline-none focus:ring-2 focus:ring-slate-500 rounded-lg transition-colors cursor-pointer' as const;
+
+/**
+ * Cancel controller button background and border design theme presentation layout classes.
+ */
+const CANCEL_BUTTON_STYLE =
+  'rounded-xl border border-slate-200 px-4 py-2 text-sm font-semibold text-slate-600 hover:bg-slate-50 focus:outline-none focus:ring-2 focus:ring-slate-500 focus:ring-offset-2 dark:border-slate-800 dark:text-slate-400 dark:hover:bg-slate-800 dark:focus:ring-offset-slate-900 transition-all cursor-pointer' as const;
+
+/**
+ * Common baseline layout classes shared across all confirmation action triggers.
+ */
+const CONFIRM_BUTTON_BASE_STYLE =
+  'rounded-xl px-4 py-2 text-sm font-semibold text-white shadow-md focus:outline-none focus:ring-2 focus:ring-offset-2 dark:focus-offset-slate-900 transition-all cursor-pointer' as const;
+
+/**
+ * Local variant mapping dictionary isolating icon wrapping decorations.
+ */
+const ICON_WRAPPER_VARIANTS = {
+  danger: 'p-3 rounded-xl shrink-0 bg-rose-500/10 text-rose-500',
+  standard: 'p-3 rounded-xl shrink-0 bg-indigo-500/10 text-indigo-500',
+} as const;
+
+/**
+ * Local variant mapping dictionary isolating confirm button themes.
+ */
+const CONFIRM_BUTTON_VARIANTS = {
+  danger: 'bg-rose-500 hover:bg-rose-600 focus:ring-rose-500',
+  standard: 'bg-indigo-600 hover:bg-indigo-700 focus:ring-indigo-500',
+} as const;
+
+/**
+ * Universal Imperative Asynchronous Confirm Modal Component.
+ * Intercepts user focus matrices and captures browser navigation keystrokes natively.
+ * Fully compatible with React 19 concurrent paradigms and modern Tailwind CSS v4 design boundaries.
+ *
+ * Follows strict constraints from AGENTS.md: zero inline comments in JSX,
+ * English-only documentation, absolute alignment properties, and structured variant mapping.
+ *
+ * @param props - Explicit presentation layout attributes and interaction dispatchers.
+ * @returns The declarative overlay portal layout or null context.
+ */
 export function ConfirmModal({
   isOpen,
   title,
@@ -27,21 +90,20 @@ export function ConfirmModal({
   const cancelButtonRef = useRef<HTMLButtonElement>(null);
   const closeButtonRef = useRef<HTMLButtonElement>(null);
 
-  // Handle accessibility focus traps, global escape bindings, and body scroll locks
   useEffect(() => {
     if (!isOpen) return;
 
-    // Prevent background content scrolling when modal viewport is active
     const originalStyle = window.getComputedStyle(document.body).overflow;
+
     document.body.style.overflow = 'hidden';
 
     const handleKeyDown = (e: KeyboardEvent) => {
       if (e.key === 'Escape') {
         onClose();
+
         return;
       }
 
-      // Strict modal focus trap loop cycle logic
       if (e.key === 'Tab') {
         const focusableElements: (HTMLElement | null)[] = [
           closeButtonRef.current,
@@ -53,13 +115,11 @@ export function ConfirmModal({
         );
 
         if (e.shiftKey) {
-          // Shift + Tab -> Move backwards
           if (activeIndex === 0) {
             confirmButtonRef.current?.focus();
             e.preventDefault();
           }
         } else {
-          // Tab -> Move forwards
           if (activeIndex === focusableElements.length - 1) {
             closeButtonRef.current?.focus();
             e.preventDefault();
@@ -68,7 +128,6 @@ export function ConfirmModal({
       }
     };
 
-    // Safely defer layout calculation initialization boundary
     const focusTimeout = setTimeout(
       () => confirmButtonRef.current?.focus(),
       50
@@ -83,20 +142,20 @@ export function ConfirmModal({
     };
   }, [isOpen, onClose]);
 
+  const severityKey = isDanger ? 'danger' : 'standard';
+
   return (
     <AnimatePresence>
       {isOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 overflow-y-auto">
-          {/* Backdrop Blur Fade In */}
+        <div className={OVERLAY_STYLE}>
           <motion.div
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
             onClick={onClose}
-            className="fixed inset-0 bg-slate-900/40 backdrop-blur-sm dark:bg-slate-950/60"
+            className={BACKDROP_STYLE}
           />
 
-          {/* Modal Content Box Zoom In */}
           <motion.div
             role="dialog"
             aria-modal="true"
@@ -106,29 +165,21 @@ export function ConfirmModal({
             animate={{ opacity: 1, scale: 1, y: 0 }}
             exit={{ opacity: 0, scale: 0.95, y: 10 }}
             transition={{ type: 'spring', duration: 0.3 }}
-            className="relative w-full max-w-md rounded-2xl border border-slate-200 bg-white p-6 shadow-xl dark:border-slate-800 dark:bg-slate-900 transition-colors duration-200 z-10"
+            className={MODAL_CARD_STYLE}
           >
-            {/* Top Close Button icon */}
             <button
               ref={closeButtonRef}
               type="button"
               onClick={onClose}
-              className="absolute top-4 right-4 text-slate-400 hover:text-slate-600 dark:hover:text-slate-300 focus:outline-none focus:ring-2 focus:ring-slate-500 rounded-lg transition-colors cursor-pointer"
+              className={CLOSE_BUTTON_STYLE}
               aria-label="Close dialog"
             >
-              <X className="h-4 w-4" />
+              <X aria-hidden="true" className="h-4 w-4" />
             </button>
 
-            {/* Layout content structure */}
             <div className="flex items-start gap-4">
-              <div
-                className={`p-3 rounded-xl shrink-0 ${
-                  isDanger
-                    ? 'bg-rose-500/10 text-rose-500'
-                    : 'bg-indigo-500/10 text-indigo-500'
-                }`}
-              >
-                <AlertTriangle className="h-6 w-6" />
+              <div className={ICON_WRAPPER_VARIANTS[severityKey]}>
+                <AlertTriangle aria-hidden="true" className="h-6 w-6" />
               </div>
 
               <div className="space-y-1 grow">
@@ -147,13 +198,12 @@ export function ConfirmModal({
               </div>
             </div>
 
-            {/* Action controls row */}
             <div className="mt-6 flex flex-col-reverse gap-2 sm:flex-row sm:justify-end">
               <button
                 ref={cancelButtonRef}
                 type="button"
                 onClick={onClose}
-                className="rounded-xl border border-slate-200 px-4 py-2 text-sm font-semibold text-slate-600 hover:bg-slate-50 focus:outline-none focus:ring-2 focus:ring-slate-500 focus:ring-offset-2 dark:border-slate-800 dark:text-slate-400 dark:hover:bg-slate-800 dark:focus:ring-offset-slate-900 transition-all cursor-pointer"
+                className={CANCEL_BUTTON_STYLE}
               >
                 {cancelLabel}
               </button>
@@ -162,11 +212,7 @@ export function ConfirmModal({
                 ref={confirmButtonRef}
                 type="button"
                 onClick={onConfirm}
-                className={`rounded-xl px-4 py-2 text-sm font-semibold text-white shadow-md focus:outline-none focus:ring-2 focus:ring-offset-2 dark:focus:ring-offset-slate-900 transition-all cursor-pointer ${
-                  isDanger
-                    ? 'bg-rose-500 hover:bg-rose-600 focus:ring-rose-500'
-                    : 'bg-indigo-600 hover:bg-indigo-700 focus:ring-indigo-500'
-                }`}
+                className={`${CONFIRM_BUTTON_BASE_STYLE} ${CONFIRM_BUTTON_VARIANTS[severityKey]}`}
               >
                 {confirmLabel}
               </button>

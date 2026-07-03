@@ -2,23 +2,32 @@
  * Application routing configuration serving as a single source of truth for all paths.
  */
 export const ROUTES = {
+  /** The primary dashboard, landing page, or catalog entry view. */
   HOME: '/',
+  /** The complete collection catalog viewing space. */
   BOOKS: '/books',
+  /** The abstract template route path targeting a single book entity profile. */
   BOOK_DETAIL: '/books/:id',
+  /** The catch-all fallback route pattern handling unknown destination paths. */
   NOT_FOUND: '*',
 } as const;
 
 /**
- * Type safety helper representing any valid static route literal from the ROUTES object.
+ * Type safety helper representing any valid layout route definition template from the ROUTES object.
+ * Resolves to the raw path patterns used strictly during route registration.
  */
-export type AppRoutes = (typeof ROUTES)[keyof typeof ROUTES];
+export type AppRoutePattern = (typeof ROUTES)[keyof typeof ROUTES];
 
 /**
  * Dynamic route path utility generators to prevent manual string interpolation across components.
+ * Guarantees valid URI pattern outputs for direct application navigation consumption.
  */
 export const routeHelpers = {
   /**
-   * Generates a valid path string for a specific book detail page.
+   * Generates a valid absolute path string for a specific book detail page.
+   *
+   * @param id - The unique backend identifier of the target book asset.
+   * @returns A fully constructed absolute path string.
    * @example routeHelpers.bookDetail('42') -> '/books/42'
    */
   bookDetail: (id: string | number): string => `/books/${id}`,
