@@ -41,6 +41,9 @@ dist-ssr/
 *.sw?
 Thumbs.db
 
+# Husky internal directory
+.husky/_
+
 # TypeScript & Linter Cache
 *.tsbuildinfo
 .eslintcache

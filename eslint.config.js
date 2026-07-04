@@ -7,6 +7,7 @@ import { defineConfig, globalIgnores } from 'eslint/config';
 import eslintConfigPrettier from 'eslint-config-prettier';
 import eslintPluginPrettier from 'eslint-plugin-prettier';
 import stylistic from '@stylistic/eslint-plugin';
+import jsdoc from 'eslint-plugin-jsdoc';
 
 export default defineConfig([
   globalIgnores(['dist']),
@@ -25,12 +26,63 @@ export default defineConfig([
     plugins: {
       '@stylistic': stylistic,
       prettier: eslintPluginPrettier,
+      jsdoc: jsdoc,
+    },
+    settings: {
+      jsdoc: {
+        mode: 'typescript',
+      },
     },
     rules: {
       'prettier/prettier': [
         'error',
         { endOfLine: 'auto' },
         { usePrettierrc: true },
+      ],
+
+      // TS-First Documentation Validation (Strict Tagless Mode)
+      'jsdoc/require-jsdoc': [
+        'error',
+        {
+          enableFixer: false,
+          require: {
+            FunctionDeclaration: false,
+            MethodDefinition: false,
+            ClassDeclaration: false,
+            ArrowFunctionExpression: false,
+          },
+          contexts: [
+            // Target all exported functional modules (React components and hooks)
+            'ExportNamedDeclaration > VariableDeclaration > VariableDeclarator > ArrowFunctionExpression',
+            'ExportNamedDeclaration > FunctionDeclaration',
+
+            // Target every TypeScript interface definition itself
+            'TSInterfaceDeclaration',
+
+            // Target every single property descriptor inside interfaces and type mappings
+            'TSInterfaceDeclaration TSPropertySignature',
+            'TSTypeAliasDeclaration TSPropertySignature',
+          ],
+        },
+      ],
+
+      // Completely deactivate legacy JS function-level parameters and property validations
+      'jsdoc/require-param': 'off',
+      'jsdoc/require-param-description': 'off',
+      'jsdoc/require-returns': 'off',
+      'jsdoc/require-returns-description': 'off',
+      'jsdoc/require-property': 'off',
+      'jsdoc/require-property-description': 'off',
+
+      // Enforce TSDoc standard: completely forbid plain JS types in comments
+      'jsdoc/no-types': 'error',
+
+      // Strict enforcement of the Tagless Paradigm: block completely all standard tags starting with @
+      'jsdoc/check-tag-names': [
+        'error',
+        {
+          definedTags: [],
+        },
       ],
     },
   },
