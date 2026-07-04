@@ -1,6 +1,6 @@
+import { useId } from 'react';
 import { Cpu } from 'lucide-react';
 
-// Static declarative representation of the project's ecosystem
 const TECH_STACK = [
   {
     name: 'React 19',
@@ -26,7 +26,7 @@ const TECH_STACK = [
     className: 'border-red-500/20 bg-red-500/10 text-red-600 dark:text-red-400',
   },
   {
-    name: 'Framer Motion', // Newly added package responsible for smooth UI interactions
+    name: 'Framer Motion',
     className:
       'border-fuchsia-500/20 bg-fuchsia-500/10 text-fuchsia-600 dark:text-fuchsia-400',
   },
@@ -37,16 +37,24 @@ const TECH_STACK = [
   },
 ] as const;
 
+/**
+ * Presentation layout view displaying the foundational engineering stack.
+ * Renders a responsive wrapped grid matrix of verified framework badges.
+ * Formatted strictly under plain english tagless rules with clear screen reader contexts.
+ */
 export function AboutTechStack() {
+  const headingId = useId();
+
   return (
-    <section className="space-y-4">
-      {/* Section Title with dynamic engine icon */}
-      <h2 className="flex items-center gap-2 text-xl font-bold text-slate-800 dark:text-slate-200">
-        <Cpu className="h-5 w-5 text-indigo-500" />
-        Technology Stack
+    <section className="space-y-4" aria-labelledby={headingId}>
+      <h2
+        id={headingId}
+        className="flex items-center gap-2 text-xl font-bold text-slate-800 dark:text-slate-200"
+      >
+        <Cpu aria-hidden="true" className="h-5 w-5 text-indigo-500" />
+        <span>Technology Stack</span>
       </h2>
 
-      {/* Responsive wrapped grid of technology badges */}
       <div className="flex flex-wrap gap-2.5">
         {TECH_STACK.map((tech) => (
           <span

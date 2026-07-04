@@ -1,15 +1,28 @@
+/**
+ * A compact, animated segmented control for choosing one option from a mutually exclusive set.
+ * It supports keyboard interaction, optional icons, and an inline loading state.
+ */
 import { useRef, type ComponentType, type KeyboardEvent } from 'react';
 import { motion } from 'framer-motion';
 
+/**
+ * Represents a single selectable option within the segmented control.
+ */
 export interface SegmentedOption<T extends string> {
   /** Unique identifying token literal bound to the core generic state model. */
   id: T;
   /** Human-readable descriptive text visible to the user. */
   label: string;
   /** Optional icon graphic component injected before the textual label. */
-  icon?: ComponentType<{ className?: string }>;
+  icon?: ComponentType<{
+    /** Optional class name applied to the rendered icon SVG or wrapper. */
+    className?: string;
+  }>;
 }
 
+/**
+ * Props for the SegmentedControl component describing structure, state, and callbacks.
+ */
 interface SegmentedControlProps<T extends string> {
   /** Unique structural namespace parameter isolating motion layout animations. */
   id: string;
@@ -37,7 +50,6 @@ const BUTTON_BASE_STYLE =
 
 /**
  * Strict reactive variant mapping for the button interaction states.
- * Fully compliant with the AGENTS.md local state mapping guidelines.
  */
 const BUTTON_STATE_STYLES = {
   active: 'text-slate-900 dark:text-slate-50 cursor-default',
@@ -46,17 +58,10 @@ const BUTTON_STATE_STYLES = {
 } as const;
 
 /**
- * Atomic Segmented Control UI Component.
- * Provides accessible keyboard-navigable tab selection switches for abstract state fields.
- * Retains strict single responsibility by separating layout from business domain states.
+ * Renders a compact segmented control for switching between mutually exclusive options.
  *
- * Follows strict constraints from AGENTS.md: zero inline comments in JSX,
- * English-only documentation, strict compile-time generics, and local state variant mappings.
- * Compliant with React 19 strict rendering constraints and ESLint rules.
- *
- * @template T - Literal string union type restricting parameters to known option sets.
- * @param props - Core presentation elements and interactive sync states.
- * @returns The structured atomic layout module.
+ * It provides keyboard navigation, animated active-state highlighting,
+ * and an optional loading state that disables interaction.
  */
 export function SegmentedControl<T extends string>({
   id,
@@ -65,8 +70,17 @@ export function SegmentedControl<T extends string>({
   onChange,
   isLoading = false,
 }: SegmentedControlProps<T>) {
+  /**
+   * Ref map storing button nodes for keyboard focus management.
+   */
   const buttonRefs = useRef<Map<T, HTMLButtonElement | null>>(new Map());
 
+  /**
+   * Keyboard navigation handler for arrow key selection support.
+   *
+   * Supports left/right and up/down arrow navigation while preserving
+   * the current value and focus state for the active option.
+   */
   const handleKeyDown = (e: KeyboardEvent<HTMLDivElement>) => {
     if (isLoading) return;
 

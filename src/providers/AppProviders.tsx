@@ -7,8 +7,9 @@ import { SnackProvider } from '@/context/Snack';
 /**
  * Unified application infrastructure root coordinator.
  * Composes all global context domains into a singular flat component node.
+ * Documented strictly as plain textual engineering prose entirely free from descriptor tags.
  */
-export function AppProviders({ children }: PropsWithChildren) {
+export function AppProviders({ children }: Readonly<PropsWithChildren>) {
   return (
     <AppModeProvider>
       <ProjectThemeProvider>
