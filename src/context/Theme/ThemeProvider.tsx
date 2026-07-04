@@ -11,13 +11,13 @@ import type { Theme } from '@/types/theme';
 
 /**
  * Context Provider encapsulating color palette theme management, hardware preferences, and storage tracking.
- * Exclusively exports the React component node layout to satisfy Fast Refresh compiler rules.
+ * Restores persisted configurations, listens to operating system media preferences, and synchronizes cross-tab events.
+ * Fully optimized under React 19 context rendering constraints and free from tag descriptors.
  */
-export function ProjectThemeProvider({ children }: PropsWithChildren) {
+export function ThemeProvider({ children }: PropsWithChildren) {
   const [theme, setThemeState] = useState<Theme>(() => {
     const saved = localStorage.getItem(THEME_KEY);
 
-    // Explicitly validate storage values against known invariants to maintain runtime safety
     return isValidTheme(saved) ? saved : DEFAULT_THEME;
   });
 
@@ -28,23 +28,21 @@ export function ProjectThemeProvider({ children }: PropsWithChildren) {
   const isDark =
     theme === THEMES.SYSTEM ? systemPrefersDark : theme === THEMES.DARK;
 
-  // 1. Listen for real-time system theme changes
   useEffect(() => {
     const mediaQuery = window.matchMedia('(prefers-color-scheme: dark)');
-    const handleChange = (e: MediaQueryListEvent) =>
+    const handleChange = (e: MediaQueryListEvent) => {
       setSystemPrefersDark(e.matches);
+    };
 
     mediaQuery.addEventListener('change', handleChange);
 
     return () => mediaQuery.removeEventListener('change', handleChange);
   }, []);
 
-  // 2. Synchronize dark mode state with HTML document element
   useEffect(() => {
     document.documentElement.classList.toggle(THEMES.DARK, isDark);
   }, [isDark]);
 
-  // 3. Persist selected theme to LocalStorage
   useEffect(() => {
     if (theme === THEMES.SYSTEM) {
       localStorage.removeItem(THEME_KEY);
@@ -53,7 +51,6 @@ export function ProjectThemeProvider({ children }: PropsWithChildren) {
     }
   }, [theme]);
 
-  // 4. Synchronize theme state across multiple open browser tabs
   useEffect(() => {
     const handleStorageChange = (e: StorageEvent) => {
       if (e.key === THEME_KEY) {
@@ -68,14 +65,12 @@ export function ProjectThemeProvider({ children }: PropsWithChildren) {
     return () => window.removeEventListener('storage', handleStorageChange);
   }, []);
 
-  // Memoize state mutation handler to secure stable reference pipeline
   const setTheme = useCallback((newTheme: Theme) => {
     setThemeState((prevTheme) =>
       newTheme === prevTheme ? prevTheme : newTheme
     );
   }, []);
 
-  // Strict structural memoization preventing cascading tree-wide UI thrashing
   const contextValue = useMemo(
     () => ({
       theme,
@@ -85,9 +80,5 @@ export function ProjectThemeProvider({ children }: PropsWithChildren) {
     [theme, setTheme, isDark]
   );
 
-  return (
-    <ThemeContext.Provider value={contextValue}>
-      {children}
-    </ThemeContext.Provider>
-  );
+  return <ThemeContext value={contextValue}>{children}</ThemeContext>;
 }

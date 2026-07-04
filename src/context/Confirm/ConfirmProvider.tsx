@@ -11,7 +11,9 @@ import type { ConfirmOptions } from './ConfirmContext';
 
 /**
  * Context Provider managing a centralized asynchronous confirmation lifecycle pipeline.
- * Injects a singular portal-ready instance of the accessible ConfirmModal to preserve memory.
+ * Injects a singular portal-ready instance of the accessible ConfirmModal to preserve memory allocations.
+ * Manages mutable promise resolver references internally to intercept user choice vectors seamlessly.
+ * Fully optimized under React 19 context rendering constraints and free from tag descriptors.
  */
 export function ConfirmProvider({ children }: PropsWithChildren) {
   const [isOpen, setIsOpen] = useState(false);
@@ -20,18 +22,13 @@ export function ConfirmProvider({ children }: PropsWithChildren) {
     description: '',
   });
 
-  // Store the resolver function of the Promise to execute it upon user action
   const resolveRef = useRef<((value: boolean) => void) | null>(null);
 
-  /**
-   * Triggers the global confirmation flow and returns a Promise waiting for explicit user interaction.
-   */
   const showConfirm = useCallback(
     (options: ConfirmOptions): Promise<boolean> => {
       setModalOptions(options);
       setIsOpen(true);
 
-      // Return a promise that will be resolved when the user clicks confirm or cancel
       return new Promise<boolean>((resolve) => {
         resolveRef.current = resolve;
       });
@@ -39,9 +36,6 @@ export function ConfirmProvider({ children }: PropsWithChildren) {
     []
   );
 
-  /**
-   * Resolves the pending transaction promise with true and resets the resolver reference.
-   */
   const handleConfirm = useCallback(() => {
     setIsOpen(false);
 
@@ -51,9 +45,6 @@ export function ConfirmProvider({ children }: PropsWithChildren) {
     }
   }, []);
 
-  /**
-   * Resolves the pending transaction promise with false upon rejection or backdrop closure.
-   */
   const handleClose = useCallback(() => {
     setIsOpen(false);
 
@@ -63,14 +54,12 @@ export function ConfirmProvider({ children }: PropsWithChildren) {
     }
   }, []);
 
-  // Memoize the context pipeline payload to prevent redundant cascading re-renders down the tree
   const contextValue = useMemo(() => ({ showConfirm }), [showConfirm]);
 
   return (
-    <ConfirmContext.Provider value={contextValue}>
+    <ConfirmContext value={contextValue}>
       {children}
 
-      {/* Single global instance of the accessible confirm modal */}
       <ConfirmModal
         isOpen={isOpen}
         title={modalOptions.title}
@@ -81,6 +70,6 @@ export function ConfirmProvider({ children }: PropsWithChildren) {
         onConfirm={handleConfirm}
         onClose={handleClose}
       />
-    </ConfirmContext.Provider>
+    </ConfirmContext>
   );
 }

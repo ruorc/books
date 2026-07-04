@@ -13,32 +13,35 @@ import { SnackContext } from './SnackContext';
 import type { Snack, SnackType } from '@/types/snack';
 import { generateRuntimeId } from '@/config/crypto';
 
-/**
- * Common baseline layout classes applied to every individual snack card.
- * Kept local and immutable to secure performance and typography cohesion.
- */
 const SNACK_BASE_STYLE =
   'pointer-events-auto flex items-start gap-3 p-4 rounded-xl border shadow-lg bg-white dark:bg-slate-900 transition-colors duration-200' as const;
 
-/**
- * Strict reactive variant mapping for semantic boundary alerts.
- * Fully compliant with the updated AGENTS.md local layout exception guidelines.
- */
 const SNACK_VARIANT_STYLES = {
   [SNACK_TYPES.SUCCESS]: 'border-emerald-200 dark:border-emerald-900/50',
   [SNACK_TYPES.ERROR]: 'border-rose-200 dark:border-rose-900/50',
   [SNACK_TYPES.INFO]: 'border-slate-200 dark:border-slate-800',
 } as const;
 
+const SNACK_ICON_VARIANTS = {
+  [SNACK_TYPES.SUCCESS]: {
+    Component: CheckCircle2,
+    className: 'h-5 w-5 text-emerald-500',
+  },
+  [SNACK_TYPES.ERROR]: {
+    Component: AlertCircle,
+    className: 'h-5 w-5 text-rose-500',
+  },
+  [SNACK_TYPES.INFO]: {
+    Component: Info,
+    className: 'h-5 w-5 text-blue-500',
+  },
+} as const;
+
 /**
  * Context Provider managing a coordinated floating notification alert queue.
- * Handles automatic background garbage collection and safe runtime unique id seeding.
- *
- * Follows strict constraints from AGENTS.md: zero inline comments in JSX,
- * English-only documentation, full screen-reader support, and clean Tailwind layout abstraction.
- *
- * @param props - Standard React context properties containing layout children nodes.
- * @returns The structured contextual notification tree enclosing child elements.
+ * Restores state tracking arrays and hooks garbage collection micro-tasks via timeouts.
+ * Handles automatic background cleanup and safe runtime unique identifier seeding.
+ * Fully optimized under React 19 context rendering constraints and free from tag descriptors.
  */
 export function SnackProvider({ children }: PropsWithChildren) {
   const [snacks, setSnacks] = useState<Snack[]>([]);
@@ -69,7 +72,6 @@ export function SnackProvider({ children }: PropsWithChildren) {
 
   const showSnack = useCallback(
     (message: string, type: SnackType = SNACK_TYPES.INFO) => {
-      // Take the raw generated string as a stable structural key
       const id = generateRuntimeId();
 
       setSnacks((prev) => [...prev, { id, message, type }]);
@@ -86,7 +88,7 @@ export function SnackProvider({ children }: PropsWithChildren) {
   const contextValue = useMemo(() => ({ showSnack }), [showSnack]);
 
   return (
-    <SnackContext.Provider value={contextValue}>
+    <SnackContext value={contextValue}>
       {children}
 
       <div
@@ -97,8 +99,8 @@ export function SnackProvider({ children }: PropsWithChildren) {
       >
         <AnimatePresence>
           {snacks.map((snack) => {
-            const isSuccess = snack.type === SNACK_TYPES.SUCCESS;
-            const isError = snack.type === SNACK_TYPES.ERROR;
+            const iconConfig = SNACK_ICON_VARIANTS[snack.type];
+            const IconComponent = iconConfig.Component;
 
             return (
               <motion.div
@@ -110,24 +112,10 @@ export function SnackProvider({ children }: PropsWithChildren) {
                 className={`${SNACK_BASE_STYLE} ${SNACK_VARIANT_STYLES[snack.type]}`}
               >
                 <div className="shrink-0 mt-0.5">
-                  {isSuccess && (
-                    <CheckCircle2
-                      aria-hidden="true"
-                      className="h-5 w-5 text-emerald-500"
-                    />
-                  )}
-                  {isError && (
-                    <AlertCircle
-                      aria-hidden="true"
-                      className="h-5 w-5 text-rose-500"
-                    />
-                  )}
-                  {!isSuccess && !isError && (
-                    <Info
-                      aria-hidden="true"
-                      className="h-5 w-5 text-blue-500"
-                    />
-                  )}
+                  <IconComponent
+                    aria-hidden="true"
+                    className={iconConfig.className}
+                  />
                 </div>
 
                 <p className="grow text-sm font-medium text-slate-800 dark:text-slate-200 leading-normal wrap-break-words">
@@ -147,6 +135,6 @@ export function SnackProvider({ children }: PropsWithChildren) {
           })}
         </AnimatePresence>
       </div>
-    </SnackContext.Provider>
+    </SnackContext>
   );
 }

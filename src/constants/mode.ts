@@ -1,7 +1,16 @@
+/**
+ * Mode constants and metadata used across the books app.
+ *
+ * The constants in this module define the available application modes,
+ * presentation labels, storage keys, and timing values for mode transitions.
+ */
 import type { AppMode } from '@/types/mode';
 
 /**
- * Application execution strategy modes matching structural paradigm splits.
+ * Available application modes used for rendering and persistence.
+ *
+ * These constants represent the two supported architectural styles
+ * for the books app: a compositional functional mode and a classic class-based mode.
  */
 export const MODES = {
   /** The functional approach using composition and hooks. */

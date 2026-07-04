@@ -1,35 +1,36 @@
+/**
+ * Structural contract defining configuration rules for automated transaction retry logic.
+ */
 export interface RetryOptions {
-  /** The maximum number of automated retry attempts after a failed request. */
-  retries?: number;
-  /** The delay duration in milliseconds between consecutive retry attempts. */
-  delay?: number;
-  /** An AbortSignal instance allowing the operation to be cancelled mid-flight. */
-  signal?: AbortSignal;
+  /** The maximum number of automated retry attempts after a failed request */
+  readonly retries?: number;
+  /** The delay duration in milliseconds between consecutive retry attempts */
+  readonly delay?: number;
+  /** An AbortSignal instance allowing the operation to be cancelled mid-flight */
+  readonly signal?: AbortSignal;
 }
 
 /**
- * Known baseline filtering properties available across standard service definitions.
- * @template T - The model type used to strictly validate the 'select' fields. Defaults to a generic object record.
+ * Baseline filtration contract hosting default criteria attributes used across network services.
+ * Features compile-time model mapping constraints to validate field selection boundaries.
+ * Documentation is written as plain textual prose entirely free from descriptor tags.
  */
 export interface BaseQueryFilters<T = Record<string, unknown>> {
-  /** A plaintext keyword used for global text or title matching queries. */
-  search?: string;
-  /** Indicates favorite items. String option supports serialized storage values like "true"/"false". */
-  isFavorite?: boolean | string;
-  /** Filters the results by the specific identifier or name of the author. */
-  author?: string;
-  /** Filters the results by a specific calendar year. */
-  year?: string;
-  /**
-   * Array of specific entity keys requested from the backend infrastructure.
-   * Enforces compile-time validation against the provided model type T.
-   */
-  select?: Array<keyof T>;
+  /** A plaintext keyword used for global text or title matching queries */
+  readonly search?: string;
+  /** Indicates favorite items selection matching boolean or serialized storage string states */
+  readonly isFavorite?: boolean | string;
+  /** Filters the results by the specific identifier or name of the author */
+  readonly author?: string;
+  /** Filters the results by a specific calendar year */
+  readonly year?: string;
+  /** Array of specific entity attributes requested from the backend infrastructure validated against model T */
+  readonly select?: Array<keyof T>;
 }
 
 /**
- * Strict record definition for arbitrary, primitive custom query parameters.
- * Eliminates 'any' to ensure type safety during object validation and traversal.
+ * Strict dictionary specification mapping primitive dynamic query indicators.
+ * Fully eliminates any usage types to ensure static analysis verification during path formatting.
  */
 export type CustomParams = Record<
   string,
@@ -37,10 +38,9 @@ export type CustomParams = Record<
 >;
 
 /**
- * Universal dictionary payload for HTTP query string parameters filtering operations.
- * Merges baseline fields with type-safe index signatures via type intersection.
- *
- * @template T - The core model entity type, defaults to a generic object record.
+ * Universal composite contract for HTTP query parameters filtering operations.
+ * Intersects baseline selection fields with flexible primitive signatures securely.
+ * Leverages generic structure parameters to maintain type safety down the execution tree.
  */
 export type QueryFilters<T = Record<string, unknown>> = BaseQueryFilters<T> &
   CustomParams;

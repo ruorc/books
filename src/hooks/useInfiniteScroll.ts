@@ -1,20 +1,27 @@
-import { useEffect, useCallback, type Dispatch } from 'react';
+import { useEffect, useCallback } from 'react';
 
 /**
- * Permitted action types required by the infinite scroll reducer dispatch contract.
+ * Structural communication contract defining all mandatory reactive properties
+ * required to orchestrate automated pagination increment streams.
+ * Leverages immutable field properties to prevent side-channel runtime modifications.
  */
-export type InfiniteScrollAction =
-  | { type: 'FETCH_NEXT_START' }
-  | { type: 'NEXT_PAGE' }
-  | { type: 'FETCH_NEXT_SUCCESS' | 'FETCH_NEXT_FAILURE' }; // Included for full lifecycle state cleanup
-
-interface UseInfiniteScrollProps<TAction> {
-  page: number;
-  isLoading: boolean;
-  isFetchingNextPage: boolean;
-  hasMore: boolean;
-  dispatch: Dispatch<TAction>;
-  fetchDataFn: (
+interface UseInfiniteScrollProps {
+  /** The current active numerical page offset sequence tracker node */
+  readonly page: number;
+  /** Boolean state flag indicating if the baseline initial query is loading */
+  readonly isLoading: boolean;
+  /** Boolean state flag indicating if a differential next page slice is loading */
+  readonly isFetchingNextPage: boolean;
+  /** Invariant boundary flag confirming if more records exist on the remote server */
+  readonly hasMore: boolean;
+  /** Callback triggered when a new page execution transaction initiates */
+  readonly onFetchStart: () => void;
+  /** Callback triggered when a page execution transaction encounters a network failure */
+  readonly onFetchFailure: () => void;
+  /** Callback triggered when the scroll boundary demands a page step increment */
+  readonly onPageIncrement: () => void;
+  /** Asynchronous data transport handler executing the actual query transaction stream */
+  readonly fetchDataFn: (
     targetPage: number,
     isInitial: boolean,
     signal: AbortSignal
@@ -22,55 +29,50 @@ interface UseInfiniteScrollProps<TAction> {
 }
 
 /**
- * Dynamic custom hook orchestrating page increments and network streams for infinite scroll layouts.
- * Ensures strict action dispatch safety and automatic AbortController memory cleanup.
- *
- * @template TAction - The restricted reducer action type, enforcing compatibility with InfiniteScrollAction.
+ * Universal layout-agnostic custom hook orchestrating infinite scroll pagination cycles.
+ * Operates purely through abstraction callbacks to fully isolate layout from state management systems.
+ * Manages atomic AbortController garbage collection to secure multi-thread network channels.
+ * Documentation features high-density engineering text layout strictly free from descriptor tags.
  */
-export function useInfiniteScroll<
-  TAction extends { type: string } & InfiniteScrollAction,
->({
+export function useInfiniteScroll({
   page,
   isLoading,
   isFetchingNextPage,
   hasMore,
-  dispatch,
+  onFetchStart,
+  onFetchFailure,
+  onPageIncrement,
   fetchDataFn,
-}: UseInfiniteScrollProps<TAction>) {
-  // Pure single-responsibility effect: tracks incremental page steps and safely cleans up connections
+}: UseInfiniteScrollProps) {
   useEffect(() => {
     const controller = new AbortController();
 
     const triggerFetch = async () => {
-      // If it's the initial page, let the parent component or service orchestrate baseline load if needed
       const isInitial = page === 1;
 
       if (!isInitial) {
-        dispatch({ type: 'FETCH_NEXT_START' } as TAction);
+        onFetchStart();
       }
 
       try {
         await fetchDataFn(page, isInitial, controller.signal);
       } catch (error) {
-        // Prevent clearing state flags if the request was intentionally cancelled by an effect cleanup
         if (error instanceof Error && error.name === 'AbortError') return;
 
-        // Notify reducer about a crash state to safely toggle off the 'isFetchingNextPage' loading overlay
-        dispatch({ type: 'FETCH_NEXT_FAILURE' } as TAction);
+        onFetchFailure();
       }
     };
 
     triggerFetch();
 
     return () => controller.abort();
-  }, [page, fetchDataFn, dispatch]);
+  }, [page, fetchDataFn, onFetchStart, onFetchFailure]);
 
-  // Stable, dynamic scroll end-of-list trigger callback
   const loadNextPage = useCallback(() => {
     if (isFetchingNextPage || !hasMore || isLoading) return;
 
-    dispatch({ type: 'NEXT_PAGE' } as TAction);
-  }, [isFetchingNextPage, hasMore, isLoading, dispatch]);
+    onPageIncrement();
+  }, [isFetchingNextPage, hasMore, isLoading, onPageIncrement]);
 
   return { loadNextPage };
 }

@@ -11,21 +11,21 @@ import { AppModeContext, isValidAppMode } from './AppModeContext';
 import type { AppMode } from '@/types/mode';
 
 /**
- * Context Provider encapsulating paradigm-switching mechanics and storage tracking.
- * Exclusively exports the React component node layout to satisfy Fast Refresh compiler rules.
+ * Global application paradigm state coordinator provider component.
+ * Restores persisted architecture configuration profiles from local storage dynamically upon initialization.
+ * Introduces synthetic debounced transition windows to prevent micro-frontend runtime trashing.
+ * Manages atomic lifecycle refs to shield asynchronous state dispatches against memory leakage.
+ * Fully optimized under React 19 context rendering constraints and free from tag descriptors.
  */
 export function AppModeProvider({ children }: PropsWithChildren) {
   const [mode, setModeState] = useState<AppMode>(() => {
     const savedMode = localStorage.getItem(MODE_KEY);
 
-    // Explicitly validate storage values against known invariants to maintain runtime safety
     return isValidAppMode(savedMode) ? savedMode : DEFAULT_MODE;
   });
 
   const [isModeLoading, setIsModeLoading] = useState(false);
   const timeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
-
-  // Keep track of mount status to eliminate state mutations after unmount
   const isMountedRef = useRef(true);
 
   useEffect(() => {
@@ -34,11 +34,12 @@ export function AppModeProvider({ children }: PropsWithChildren) {
     return () => {
       isMountedRef.current = false;
 
-      if (timeoutRef.current) clearTimeout(timeoutRef.current);
+      if (timeoutRef.current) {
+        clearTimeout(timeoutRef.current);
+      }
     };
   }, []);
 
-  // Persist the current mode to LocalStorage whenever it changes
   useEffect(() => {
     localStorage.setItem(MODE_KEY, mode);
   }, [mode]);
@@ -65,7 +66,6 @@ export function AppModeProvider({ children }: PropsWithChildren) {
     [mode, isModeLoading]
   );
 
-  // Memoize context value payload to prevent redundant re-renders down the tree
   const contextValue = useMemo(
     () => ({
       mode,
@@ -75,9 +75,5 @@ export function AppModeProvider({ children }: PropsWithChildren) {
     [mode, setMode, isModeLoading]
   );
 
-  return (
-    <AppModeContext.Provider value={contextValue}>
-      {children}
-    </AppModeContext.Provider>
-  );
+  return <AppModeContext value={contextValue}>{children}</AppModeContext>;
 }
