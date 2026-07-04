@@ -1,30 +1,27 @@
 import { LOADER_ACCESSIBILITY_TEXT } from '@/constants/ui';
 
+/**
+ * Structural communication contract defining parameters accepted by the PageLoader container.
+ * Features mandatory independent property documentation layout specifications.
+ */
 interface PageLoaderProps {
+  /** Optional atomic Tailwind CSS class string used to customize layout height and spacing boundaries */
   readonly className?: string;
 }
 
 /**
- * Global Shared Page Loader Spinner Component.
- * Provides a highly accessible, semantic, and flicker-free animation wheel
- * used across view boundaries during lazy-loaded routing transitions.
- *
- * Follows strict constraints from AGENTS.md: zero inline comments in JSX,
- * English-only documentation, strict compile-time types, and zero magic strings.
- *
- * @param props - Custom positioning layout modifiers injected from top parent matrices.
- * @returns The structured atomic accessibility-ready loading section.
+ * Centered Asynchronous Page Loading Indicator Component.
+ * Establishes accessible status trees via semantic live region nodes for screen reader tracking.
+ * Operates under strict tagless documentation guidelines with zero inline comments inside JSX.
  */
-export default function PageLoader({
-  className = 'h-[50vh]',
-}: PageLoaderProps) {
+export function PageLoader({ className = 'h-[50vh]' }: PageLoaderProps) {
   return (
     <div
       role="status"
       aria-live="polite"
       className={`flex items-center justify-center w-full transition-colors ${className}`}
     >
-      <div className="h-8 w-8 animate-spin rounded-full border-4 border-slate-300 border-t-indigo-600 dark:border-slate-700 dark:border-t-indigo-400 transition-none!" />
+      <div className="h-8 w-8 animate-spin rounded-full border-4 border-slate-300 border-t-indigo-600 dark:border-slate-700 dark:border-t-indigo-400" />
       <span className="sr-only">{LOADER_ACCESSIBILITY_TEXT}</span>
     </div>
   );

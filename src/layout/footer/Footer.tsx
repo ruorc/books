@@ -19,14 +19,10 @@ const BADGE_VARIANT_STYLES = {
 } as const;
 
 /**
- * Global Footer Component.
- * Renders copyright specifications, application baseline summaries, and
- * a live semantic visual badge tracking the active runtime architecture strategy engine.
- *
- * Follows strict constraints from AGENTS.md: zero inline comments in JSX,
- * English-only documentation, full screen-reader support, and clean Tailwind abstraction.
- *
- * @returns The sticky layout footer bar embedded at the bottom of the viewport matrix.
+ * Global Footer Component rendering the platform baseline layout structure.
+ * Provides copyright specifications, comparative architecture summaries, and
+ * a live semantic visual badge tracking the active runtime strategy engine.
+ * Follows strict constraints: zero inline comments in JSX and tagless prose.
  */
 export default function Footer() {
   const { mode } = useAppMode();

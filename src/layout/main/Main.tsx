@@ -4,12 +4,11 @@ import type { PropsWithChildren } from 'react';
  * Global Main Content Container Component.
  * Establishes the semantic layout boundary, responsive padding matrices,
  * and maximum structural width limits for all rendered sub-views and routes.
+ * Accepts standard React context properties containing layout children nodes.
+ * Produces the structured semantic main HTML element wrapper.
  *
  * Follows strict constraints from AGENTS.md: zero inline comments in JSX,
- * English-only documentation, and atomic semantic HTML layout structure.
- *
- * @param props - Standard React context properties containing layout children nodes.
- * @returns The structured semantic main HTML element wrapper.
+ * English-only documentation, and an absolute tagless layout structure.
  */
 export default function Main({ children }: PropsWithChildren) {
   return (

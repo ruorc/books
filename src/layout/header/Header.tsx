@@ -39,14 +39,10 @@ const handlePreventActiveClick = (
 };
 
 /**
- * Global Header Component.
- * Renders the primary navigation shell, corporate branding logo,
- * and responsive interactive utility controls for application theme and architecture engine selection.
- *
- * Follows strict constraints from AGENTS.md: zero inline comments in JSX,
- * English-only documentation, full screen-reader support, and clean Tailwind layout abstraction.
- *
- * @returns The sticky responsive navigation header bar.
+ * Global Header Component rendering the primary application navigation bar.
+ * Handles configuration switches for application theme selection and core runtime paradigm engines.
+ * Manages sticky positioning layout, backdrop blurs, responsive utility menus, and strict screen reader contexts.
+ * Follows strict specifications from AGENTS.md with zero inline comments in JSX and tagless documentation prose.
  */
 export default function Header() {
   const { mode, setMode, isModeLoading } = useAppMode();

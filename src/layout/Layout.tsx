@@ -5,43 +5,34 @@ import { useProjectTheme } from '@/context/Theme';
 import { useSnack } from '@/context/Snack';
 import { SNACK_TYPES } from '@/constants/snack';
 import { THEME_LABELS } from '@/constants/theme';
-import { ENGINE_LABELS } from '@/constants/ui';
-import { MODES } from '@/constants/mode';
+import { ENGINE_LABELS } from '@/constants/mode';
 import PageLoader from '@/components/PageLoader';
 import Footer from './footer/Footer';
 import Header from './header/Header';
 import Main from './main/Main';
 
 /**
- * Root Application Layout Wrapper Component.
- * Establishes the core grid, header, footer, and shell structure of the system.
- *
- * Intercepts theme and rendering mode state modifications to dispatch localized,
- * transient notification alert logs via the Snack pipeline.
- *
- * @returns The main container view embedding sub-routes dynamically inside the Main region.
+ * Root Application Layout Wrapper Component establishing the system frame scaffolding.
+ * Orchestrates global viewport grids, sticky navigation headers, and flexible footer positioning.
+ * Monitors mutations inside user interface style contexts and architecture paradigms reactively.
+ * Leverages local persistence references to dispatch transient status tracking push alerts
+ * via the global notifications system safely without inducing redundant state cycle drops.
+ * Follows strict constraints: zero inline comments in JSX and tagless engineering prose documentation.
  */
 export default function Layout() {
   const { isModeLoading, mode } = useAppMode();
   const { theme } = useProjectTheme();
   const { showSnack } = useSnack();
 
-  // Store the previously evaluated values to compare against strict runtime state
   const previousModeRef = useRef(mode);
   const previousThemeRef = useRef(theme);
 
-  // 1. Reactively monitor mode changes without triggering parent tree rerenders
   useEffect(() => {
-    // If the mode hasn't actually changed from the last render, it's the initial setup
     if (previousModeRef.current === mode) return;
 
     previousModeRef.current = mode;
 
-    // Fully aligned with the updated MODES.FUNCTIONAL constant schema
-    const modeLabel =
-      mode === MODES.FUNCTIONAL
-        ? ENGINE_LABELS.FUNCTIONAL
-        : ENGINE_LABELS.CLASS;
+    const modeLabel = ENGINE_LABELS[mode];
 
     showSnack(
       `Switched rendering architecture engine to: ${modeLabel}`,
@@ -49,17 +40,14 @@ export default function Layout() {
     );
   }, [mode, showSnack]);
 
-  // 2. Reactively monitor theme changes without triggering parent tree rerenders
   useEffect(() => {
-    // If the theme hasn't actually changed from the last render, it's the initial setup
     if (previousThemeRef.current === theme) return;
 
     previousThemeRef.current = theme;
 
-    showSnack(
-      `Theme preference updated to: ${THEME_LABELS[theme]}`,
-      SNACK_TYPES.INFO
-    );
+    const themeLabel = THEME_LABELS[theme];
+
+    showSnack(`Theme preference updated to: ${themeLabel}`, SNACK_TYPES.INFO);
   }, [theme, showSnack]);
 
   return (
