@@ -1,10 +1,10 @@
 import { useCallback, useEffect, useRef } from 'react';
 import { useBooksCatalogContext } from '@/views/BooksPage/context/BooksCatalogContext';
-import { booksService } from '@/services/booksDataServiceMockApi';
-import { BOOKS_PER_PAGE_LIMIT } from '@/constants/ui';
+import { booksService } from '@/services';
+import { BOOKS_PER_PAGE_LIMIT } from '@/views/BooksDomain/constants/booksConstants';
 import { useInfiniteScroll } from '@/hooks/useInfiniteScroll';
 import type { QueryFilters } from '@/types/api';
-import type { Book } from '@/types/book';
+import type { Book } from '@/views/BooksDomain/types/book';
 
 export function useBooksFetch() {
   const { state, dispatch } = useBooksCatalogContext();
@@ -23,10 +23,8 @@ export function useBooksFetch() {
         if (state.favOnly) queryFilters.isFavorite = 'true';
         if (state.globalSearch.trim())
           queryFilters.search = state.globalSearch.trim();
-        if (state.authorSearch.trim())
-          queryFilters.author = state.authorSearch.trim();
-        if (state.yearSearch.trim())
-          queryFilters.year = state.yearSearch.trim();
+        if (state.author.trim()) queryFilters.author = state.author.trim();
+        if (state.year.trim()) queryFilters.year = state.year.trim();
 
         // 2. Inject NATIVE Server-side sorting parameters backed by MockAPI
         queryFilters.sortBy = state.sortField;
@@ -56,8 +54,8 @@ export function useBooksFetch() {
     [
       state.globalSearch,
       state.favOnly,
-      state.authorSearch,
-      state.yearSearch,
+      state.author,
+      state.year,
       state.sortField,
       state.sortDirection,
       dispatch,
@@ -77,8 +75,8 @@ export function useBooksFetch() {
   }, [
     state.globalSearch,
     state.titleSearch,
-    state.authorSearch,
-    state.yearSearch,
+    state.author,
+    state.year,
     state.favOnly,
     state.sortField,
     state.sortDirection,

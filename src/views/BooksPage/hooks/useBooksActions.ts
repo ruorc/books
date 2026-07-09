@@ -1,9 +1,9 @@
 import { useCallback } from 'react';
-import { booksService } from '@/services/booksDataServiceMockApi';
-import { useConfirm } from '@/context/Confirm/ConfirmProvider';
-import { useSnack } from '@/context/Snack/SnackProvider';
-import { SNACK_TYPES } from '@/constants/snack';
-import type { Book } from '@/types/book';
+import { booksService } from '@/services';
+import { useConfirm } from '@/context/Confirm';
+import { useSnack } from '@/context/Snack';
+import { SNACKS } from '@/context/Snack/constants/snackConstants';
+import type { Book } from '@/views/BooksDomain/types/book';
 
 interface UseBooksActionsProps {
   booksMap: Map<string, Book>;
@@ -48,10 +48,7 @@ export function useBooksActions({
 
         // 2. Synchronize mutation with the remote server database
         await booksService.delete(id);
-        showSnack(
-          `${bookTitle} was successfully deleted.`,
-          SNACK_TYPES.SUCCESS
-        );
+        showSnack(`${bookTitle} was successfully deleted.`, SNACKS.SUCCESS);
       } catch (err) {
         // Rollback: Restore item back into client memory maps if the network pipeline breaks
         booksMap.set(id, backupBook);
@@ -59,7 +56,7 @@ export function useBooksActions({
 
         showSnack(
           err instanceof Error ? err.message : 'Server rejected deletion.',
-          SNACK_TYPES.ERROR
+          SNACKS.ERROR
         );
       }
     },
@@ -90,7 +87,7 @@ export function useBooksActions({
           updatedStatus
             ? `"${targetBook.title}" bookmarked.`
             : `"${targetBook.title}" unbookmarked.`,
-          SNACK_TYPES.SUCCESS
+          SNACKS.SUCCESS
         );
       } catch (err) {
         // Rollback: Revert fields values if the transaction pipeline fails
@@ -99,7 +96,7 @@ export function useBooksActions({
 
         showSnack(
           'Server failed to synchronize your favorite status.',
-          SNACK_TYPES.ERROR
+          SNACKS.ERROR
         );
       }
     },

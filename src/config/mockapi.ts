@@ -7,9 +7,9 @@ if (!PROJECT_TOKEN) {
   );
 }
 
-const baseUrlString = PROJECT_TOKEN
+const computedBaseUrl = PROJECT_TOKEN
   ? `https://${PROJECT_TOKEN}.mockapi.io`
-  : 'https://mockapi.io';
+  : 'https://fallback-token.mockapi.io';
 
 /**
  * Universal endpoint resolution helper that combines environment prefixes and route segments.
@@ -38,11 +38,11 @@ const resolveEndpoint = (
  */
 export const MOCKAPI_CONFIG = {
   /** Root secure web path addressing the provisioned third-party platform subdomain */
-  BASE_URL: baseUrlString,
+  BASE_URL: computedBaseUrl,
 
-  /** Dynamic collection endpoints fully marshaled via native URL pathname assignments */
+  /** Dynamic collection endpoints matrix fully marshaled via native URL pathname assignments */
   ENDPOINTS: {
     /** Absolute network path targeting the books database cluster */
-    BOOKS: resolveEndpoint(baseUrlString, API_PREFIX, 'books'),
+    BOOKS: resolveEndpoint(computedBaseUrl, API_PREFIX, 'books'),
   },
 } as const;

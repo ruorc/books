@@ -1,4 +1,4 @@
-import type { ComponentType } from 'react';
+import { type ComponentType, type ReactNode } from 'react';
 
 /**
  * Structural contract defining properties accepted by theme and engine icons.
@@ -27,7 +27,6 @@ interface AboutCardProps {
 
 /**
  * Atomic layout block presenting specific runtime app metrics or visual modes.
- * Features an English-only text description block fully compliant with the tagless schema.
  */
 export function AboutCard({
   title,
@@ -35,7 +34,7 @@ export function AboutCard({
   description,
   icon: Icon,
   iconColorClass,
-}: AboutCardProps) {
+}: AboutCardProps): ReactNode {
   return (
     <div className="flex items-start gap-4 rounded-2xl border border-slate-200 bg-white p-5 transition-colors duration-200 dark:border-slate-800 dark:bg-slate-900/50">
       <div className={`rounded-xl p-3 shrink-0 ${iconColorClass}`}>

@@ -1,6 +1,6 @@
 import { Heart, Trash2, Calendar, Clock } from 'lucide-react';
 import { Link } from 'react-router-dom';
-import type { Book } from '@/types/book';
+import type { Book } from '@/views/BooksDomain/types/book';
 
 interface BookCardProps {
   book: Book;
@@ -49,7 +49,7 @@ export function BookCard({
   return (
     <div className="flex flex-col bg-white border border-gray-200 rounded-xl shadow-xs dark:bg-gray-800 dark:border-gray-700 overflow-hidden hover:shadow-md transition-shadow duration-200 group h-full">
       <Link
-        to={`/books/${book.id}`}
+        to={`/books/${book.bookId}`}
         className="relative block aspect-3/4 bg-gray-50 dark:bg-gray-900/40 overflow-hidden cursor-pointer"
       >
         <img
@@ -81,16 +81,16 @@ export function BookCard({
               </button>
             </span>
 
-            {book.year && (
+            {book.writingYear && (
               <span className="text-gray-500 dark:text-gray-500 font-normal line-clamp-1">
                 in{' '}
                 <button
                   type="button"
-                  onClick={() => onYearClick?.(book.year)}
+                  onClick={() => onYearClick?.(book.writingYear)}
                   className="hover:text-indigo-600 dark:hover:text-indigo-400 hover:underline cursor-pointer transition-colors text-left font-medium"
-                  title={`Show all books published in ${book.year}`}
+                  title={`Show all books published in ${book.writingYear}`}
                 >
-                  {book.year}
+                  {book.writingYear}
                 </button>
               </span>
             )}
@@ -100,7 +100,7 @@ export function BookCard({
             type="button"
             onClick={(e) => {
               e.stopPropagation();
-              onToggleFavorite(book.id);
+              onToggleFavorite(book.bookId);
             }}
             className={`p-2 rounded-xl border transition-colors cursor-pointer focus:outline-none focus-visible:ring-2 focus-visible:ring-red-400 ${
               isFavorite
@@ -135,7 +135,7 @@ export function BookCard({
 
           <button
             type="button"
-            onClick={() => onDelete(book.id)}
+            onClick={() => onDelete(book.bookId)}
             className="text-gray-400 hover:text-white border border-gray-200 hover:bg-red-600 hover:border-red-600 focus:ring-4 focus:outline-none focus:ring-red-300 font-medium rounded-xl text-sm p-2 text-center inline-flex items-center dark:border-gray-700 dark:text-gray-500 dark:hover:text-white dark:hover:bg-red-600 dark:focus:ring-red-900 transition-colors cursor-pointer shrink-0"
             aria-label="Delete book"
           >

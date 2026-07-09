@@ -29,10 +29,18 @@ interface UseInfiniteScrollProps {
 }
 
 /**
+ * Structural contract defining the immutable references and transaction triggers
+ * returned by the infinite scroll pagination manager.
+ */
+interface UseInfiniteScrollResult {
+  /** Callback utility dispatched by viewport trigger intersection nodes to step pagination forward */
+  readonly loadNextPage: () => void;
+}
+
+/**
  * Universal layout-agnostic custom hook orchestrating infinite scroll pagination cycles.
  * Operates purely through abstraction callbacks to fully isolate layout from state management systems.
  * Manages atomic AbortController garbage collection to secure multi-thread network channels.
- * Documentation features high-density engineering text layout strictly free from descriptor tags.
  */
 export function useInfiniteScroll({
   page,
@@ -43,7 +51,7 @@ export function useInfiniteScroll({
   onFetchFailure,
   onPageIncrement,
   fetchDataFn,
-}: UseInfiniteScrollProps) {
+}: UseInfiniteScrollProps): UseInfiniteScrollResult {
   useEffect(() => {
     const controller = new AbortController();
 

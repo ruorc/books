@@ -1,10 +1,10 @@
 import { Plus, Heart, SlidersHorizontal, X } from 'lucide-react'; // Imported X icon
-import { useAppMode } from '@/context/AppMode/AppModeProvider';
-import { MODES } from '@/constants/mode';
+import { useAppMode } from '@/context/AppMode';
+import { MODES } from '@/context/AppMode/constants/modeConstants';
 import { BookFormModal } from '@/components/BookFormModal';
 import { AdvancedSearchModal } from '@/components/AdvancedSearchModal';
 import { useBooksPageLogic } from './hooks/useBooksPageLogic';
-import PageLoader from '@/components/PageLoader';
+import { PageLoader } from '@/components/PageLoader';
 import { FuncCatalog } from './FuncCatalog';
 
 export default function BooksPage() {
@@ -25,8 +25,8 @@ export default function BooksPage() {
   const isFiltersActive = !!(
     catalogState.globalSearch ||
     catalogState.titleSearch ||
-    catalogState.authorSearch ||
-    catalogState.yearSearch
+    catalogState.author ||
+    catalogState.year
   );
 
   return (

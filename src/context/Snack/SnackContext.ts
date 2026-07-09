@@ -1,5 +1,6 @@
 import { createContext, useContext } from 'react';
-import type { SnackType } from '@/types/snack';
+
+import type { Snack } from './types/snack';
 
 /**
  * Structural contract defining properties and mutation metrics managed by the Snack notification context.
@@ -10,7 +11,7 @@ export interface SnackContextType {
    * Triggers a transient notification message overlay banner on the user interface.
    * Accepts the visible text description content and an optional severity category style configuration.
    */
-  showSnack: (message: string, type?: SnackType) => void;
+  readonly showSnack: (message: string, type?: Snack) => void;
 }
 
 /**
@@ -27,7 +28,7 @@ export const SnackContext = createContext<SnackContextType | undefined>(
  * Throws a descriptive application exception error when evaluated outside a structurally sound provider tree boundary.
  * Eliminates runtime null checks for call sites by guaranteeing a defined state contract payload.
  */
-export function useSnack() {
+export function useSnack(): SnackContextType {
   const context = useContext(SnackContext);
 
   if (!context) {

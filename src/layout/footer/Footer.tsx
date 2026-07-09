@@ -1,17 +1,12 @@
 import { Code2, Terminal } from 'lucide-react';
-import { MODES } from '@/constants/mode';
+import { MODES } from '@/context/AppMode/constants/modeConstants';
 import { useAppMode } from '@/context/AppMode';
 
 const STATIC_YEAR = 2026 as const;
 
 /**
- * Base layout utility classes for the engine status indicator.
- */
-const BADGE_BASE_STYLE =
-  'inline-flex items-center gap-2 rounded-full border bg-slate-100 px-3 py-1 text-xs font-semibold text-slate-700 dark:bg-slate-800 dark:text-slate-300 transition-colors duration-200' as const;
-
-/**
  * Strictly mapped architectural variant borders to keep the JSX layout clean and readable.
+ * Abstracted safely within the local file boundary since styles change reactively based on mode.
  */
 const BADGE_VARIANT_STYLES = {
   [MODES.FUNCTIONAL]: 'border-sky-200/50 dark:border-sky-700/50',
@@ -22,9 +17,8 @@ const BADGE_VARIANT_STYLES = {
  * Global Footer Component rendering the platform baseline layout structure.
  * Provides copyright specifications, comparative architecture summaries, and
  * a live semantic visual badge tracking the active runtime strategy engine.
- * Follows strict constraints: zero inline comments in JSX and tagless prose.
  */
-export default function Footer() {
+export const Footer: React.FC = () => {
   const { mode } = useAppMode();
 
   return (
@@ -49,7 +43,7 @@ export default function Footer() {
             <div
               role="status"
               aria-live="polite"
-              className={`${BADGE_BASE_STYLE} ${BADGE_VARIANT_STYLES[mode]}`}
+              className={`inline-flex items-center gap-2 rounded-full border bg-slate-100 px-3 py-1 text-xs font-semibold text-slate-700 dark:bg-slate-800 dark:text-slate-300 transition-colors duration-200 ${BADGE_VARIANT_STYLES[mode]}`}
             >
               {mode === MODES.FUNCTIONAL ? (
                 <>
@@ -74,4 +68,4 @@ export default function Footer() {
       </div>
     </footer>
   );
-}
+};

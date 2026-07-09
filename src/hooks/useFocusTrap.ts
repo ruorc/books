@@ -13,12 +13,28 @@ interface UseFocusTrapProps {
 }
 
 /**
+ * Structural contract defining the immutable references returned by the focus trap tracker
+ * to bind inside the target layout interactive elements matrix.
+ */
+interface UseFocusTrapResult {
+  /** Mutable React reference bound strictly to the first interactive node of the view */
+  readonly firstRef: React.RefObject<HTMLButtonElement | null>;
+  /** Mutable React reference bound strictly to the second interactive node of the view */
+  readonly secondRef: React.RefObject<HTMLButtonElement | null>;
+  /** Mutable React reference bound strictly to the third interactive node of the view */
+  readonly thirdRef: React.RefObject<HTMLButtonElement | null>;
+}
+
+/**
  * Universal layout-agnostic custom hook managing accessibility focus cycles.
  * Contextually locks keyboard tab shifting vectors strictly inside active overlay boxes.
  * Blocks window viewports background scrolling interactions safely to protect focus trees.
  * Fully compliant with plain english tagless documentation boundaries.
  */
-export function useFocusTrap({ isOpen, onClose }: UseFocusTrapProps) {
+export function useFocusTrap({
+  isOpen,
+  onClose,
+}: UseFocusTrapProps): UseFocusTrapResult {
   const firstElementRef = useRef<HTMLButtonElement>(null);
   const secondElementRef = useRef<HTMLButtonElement>(null);
   const thirdElementRef = useRef<HTMLButtonElement>(null);
@@ -33,7 +49,6 @@ export function useFocusTrap({ isOpen, onClose }: UseFocusTrapProps) {
     const handleKeyDown = (e: KeyboardEvent) => {
       if (e.key === 'Escape') {
         onClose();
-
         return;
       }
 

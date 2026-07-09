@@ -4,11 +4,14 @@ import {
   useBooksCatalogContext,
   type CatalogState,
 } from '../context/BooksCatalogContext';
-import { useSnack } from '@/context/Snack/SnackProvider';
-import { SNACK_TYPES } from '@/constants/snack';
-import { SORT_FIELDS, SORT_DIRECTIONS } from '@/constants/ui'; // Cleaned up: removed unused FILTER_TYPES
-import { booksService } from '@/services/booksDataServiceMockApi';
-import type { BookPayload } from '@/types/book';
+import { useSnack } from '@/context/Snack';
+import { SNACKS } from '@/context/Snack/constants/snackConstants';
+import {
+  SORT_FIELDS,
+  SORT_DIRECTIONS,
+} from '@/views/BooksDomain/constants/booksConstants'; // Cleaned up: removed unused FILTER_TYPES
+import { booksService } from '@/services';
+import type { BookPayload } from '@/views/BooksDomain/types/book';
 
 export function useBooksPageLogic() {
   const { state: catalogState, dispatch } = useBooksCatalogContext();
@@ -32,8 +35,8 @@ export function useBooksPageLogic() {
       dispatch({
         type: 'SET_ADVANCED_FILTERS',
         payload: {
-          authorSearch: authorParam,
-          yearSearch: yearParam,
+          author: authorParam,
+          year: yearParam,
           globalSearch: '',
           titleSearch: '',
         },
@@ -52,13 +55,13 @@ export function useBooksPageLogic() {
       dispatch({ type: 'LOCAL_ADD_BOOK', payload: createdBook });
       showSnack(
         `"${createdBook.title}" successfully added to catalog.`,
-        SNACK_TYPES.SUCCESS
+        SNACKS.SUCCESS
       );
       setIsAddModalOpen(false);
     } catch (err) {
       showSnack(
         'Failed to register a new book record on the server.',
-        SNACK_TYPES.ERROR
+        SNACKS.ERROR
       );
     } finally {
       setIsSubmitting(false);
@@ -77,16 +80,13 @@ export function useBooksPageLogic() {
       payload: {
         globalSearch: '',
         titleSearch: '',
-        authorSearch: '',
-        yearSearch: '',
+        author: '',
+        year: '',
         sortField: SORT_FIELDS.CREATED_AT,
         sortDirection: SORT_DIRECTIONS.DESC,
       },
     });
-    showSnack(
-      'All active search filters successfully cleared.',
-      SNACK_TYPES.INFO
-    );
+    showSnack('All active search filters successfully cleared.', SNACKS.INFO);
   };
 
   return {

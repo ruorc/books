@@ -1,8 +1,9 @@
 import { NavLink } from 'react-router-dom';
 import { BookOpen } from 'lucide-react';
-import { ROUTES } from '@/routers/routes';
-import { ModeSelector, useAppMode } from '@/context/AppMode';
-import { ThemeSelector } from '@/context/Theme';
+import { ROUTES } from '@/router/routes';
+import { useAppMode } from '@/context/AppMode';
+import { ModeSelector } from './components/ModeSelector';
+import { ThemeSelector } from './components/ThemeSelector';
 
 /**
  * Pure stable styling engine for generic navigation links.
@@ -42,9 +43,8 @@ const handlePreventActiveClick = (
  * Global Header Component rendering the primary application navigation bar.
  * Handles configuration switches for application theme selection and core runtime paradigm engines.
  * Manages sticky positioning layout, backdrop blurs, responsive utility menus, and strict screen reader contexts.
- * Follows strict specifications from AGENTS.md with zero inline comments in JSX and tagless documentation prose.
  */
-export default function Header() {
+export const Header: React.FC = () => {
   const { mode, setMode, isModeLoading } = useAppMode();
 
   return (
@@ -95,4 +95,4 @@ export default function Header() {
       </div>
     </header>
   );
-}
+};

@@ -4,36 +4,47 @@ import {
   useMemo,
   useEffect,
   useRef,
-  type PropsWithChildren,
+  type ReactNode,
 } from 'react';
 import { AnimatePresence, motion } from 'framer-motion';
 import { CheckCircle2, AlertCircle, Info, X } from 'lucide-react';
-import { SNACK_TYPES, SNACK_AUTOHIDE_DURATION } from '@/constants/snack';
+import { SNACKS, SNACK_DISPLAY_DURATION } from './constants/snackConstants';
 import { SnackContext } from './SnackContext';
-import type { Snack, SnackType } from '@/types/snack';
-import { generateRuntimeId } from '@/config/crypto';
+import { generateRuntimeId } from '@/utils/crypto';
 
-const SNACK_BASE_STYLE =
-  'pointer-events-auto flex items-start gap-3 p-4 rounded-xl border shadow-lg bg-white dark:bg-slate-900 transition-colors duration-200' as const;
+import type { SnackItem, Snack } from './types/snack';
+
+/**
+ * Structural contract defining properties expected by the global snack notification coordinator.
+ */
+interface SnackProviderProps {
+  /** The composite React element node children nested within the visual alert system tree */
+  readonly children: ReactNode;
+}
 
 const SNACK_VARIANT_STYLES = {
-  [SNACK_TYPES.SUCCESS]: 'border-emerald-200 dark:border-emerald-900/50',
-  [SNACK_TYPES.ERROR]: 'border-rose-200 dark:border-rose-900/50',
-  [SNACK_TYPES.INFO]: 'border-slate-200 dark:border-slate-800',
+  [SNACKS.SUCCESS]: 'border-emerald-200 dark:border-emerald-900/50',
+  [SNACKS.ERROR]: 'border-rose-200 dark:border-rose-900/50',
+  [SNACKS.INFO]: 'border-slate-200 dark:border-slate-800',
+  [SNACKS.WARNING]: 'border-amber-200 dark:border-amber-900/50',
 } as const;
 
 const SNACK_ICON_VARIANTS = {
-  [SNACK_TYPES.SUCCESS]: {
+  [SNACKS.SUCCESS]: {
     Component: CheckCircle2,
     className: 'h-5 w-5 text-emerald-500',
   },
-  [SNACK_TYPES.ERROR]: {
+  [SNACKS.ERROR]: {
     Component: AlertCircle,
     className: 'h-5 w-5 text-rose-500',
   },
-  [SNACK_TYPES.INFO]: {
+  [SNACKS.INFO]: {
     Component: Info,
     className: 'h-5 w-5 text-blue-500',
+  },
+  [SNACKS.WARNING]: {
+    Component: AlertCircle,
+    className: 'h-5 w-5 text-amber-500',
   },
 } as const;
 
@@ -43,8 +54,8 @@ const SNACK_ICON_VARIANTS = {
  * Handles automatic background cleanup and safe runtime unique identifier seeding.
  * Fully optimized under React 19 context rendering constraints and free from tag descriptors.
  */
-export function SnackProvider({ children }: PropsWithChildren) {
-  const [snacks, setSnacks] = useState<Snack[]>([]);
+export function SnackProvider({ children }: SnackProviderProps) {
+  const [snacks, setSnacks] = useState<readonly SnackItem[]>([]);
 
   const timersRef = useRef<Map<string, ReturnType<typeof setTimeout>>>(
     new Map()
@@ -71,14 +82,14 @@ export function SnackProvider({ children }: PropsWithChildren) {
   }, []);
 
   const showSnack = useCallback(
-    (message: string, type: SnackType = SNACK_TYPES.INFO) => {
+    (message: string, type: Snack = SNACKS.INFO) => {
       const id = generateRuntimeId();
 
       setSnacks((prev) => [...prev, { id, message, type }]);
 
       const timer = setTimeout(() => {
         removeSnack(id);
-      }, SNACK_AUTOHIDE_DURATION);
+      }, SNACK_DISPLAY_DURATION);
 
       timersRef.current.set(id, timer);
     },
@@ -109,7 +120,7 @@ export function SnackProvider({ children }: PropsWithChildren) {
                 initial={{ opacity: 0, y: 50, scale: 0.9 }}
                 animate={{ opacity: 1, y: 0, scale: 1 }}
                 exit={{ opacity: 0, scale: 0.8, transition: { duration: 0.2 } }}
-                className={`${SNACK_BASE_STYLE} ${SNACK_VARIANT_STYLES[snack.type]}`}
+                className={`pointer-events-auto flex items-start gap-3 p-4 rounded-xl border shadow-lg bg-white dark:bg-slate-900 transition-colors duration-200 ${SNACK_VARIANT_STYLES[snack.type]}`}
               >
                 <div className="shrink-0 mt-0.5">
                   <IconComponent
@@ -125,7 +136,7 @@ export function SnackProvider({ children }: PropsWithChildren) {
                 <button
                   type="button"
                   onClick={() => removeSnack(snack.id)}
-                  className="shrink-0 text-slate-400 hover:text-slate-600 dark:hover:text-slate-300 focus:outline-none focus:ring-2 focus:ring-slate-400 rounded-lg transition-colors cursor-pointer"
+                  className="shrink-0 text-slate-400 hover:text-slate-600 dark:hover:text-slate-300 focus:outline-none focus-visible:ring-2 focus-visible:ring-slate-400 rounded-lg transition-colors cursor-pointer"
                   aria-label="Dismiss notification"
                 >
                   <X aria-hidden="true" className="h-4 w-4" />

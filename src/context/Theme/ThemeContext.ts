@@ -1,6 +1,7 @@
 import { createContext, useContext } from 'react';
-import { THEMES } from '@/constants/theme';
-import type { Theme } from '@/types/theme';
+import { THEMES } from './constants/themeConstants';
+
+import type { Theme } from './types/theme';
 
 /**
  * Structural contract defining properties and payload metrics managed by the Theme context.
@@ -8,11 +9,11 @@ import type { Theme } from '@/types/theme';
  */
 export interface ThemeContextType {
   /** The currently selected active theme configuration preference mode */
-  theme: Theme;
+  readonly theme: Theme;
   /** Sets a fresh user interface color theme strategy mode and updates references securely */
-  setTheme: (theme: Theme) => void;
+  readonly setTheme: (theme: Theme) => void;
   /** Evaluated dynamic boolean state flag indicating whether the system layout should render dark styles */
-  isDark: boolean;
+  readonly isDark: boolean;
 }
 
 /**
@@ -37,7 +38,7 @@ export const isValidTheme = (value: string | null): value is Theme => {
  * Safe consumer hook providing direct type-safe access to the global active theme context space.
  * Throws a descriptive application exception error when evaluated outside a structurally sound provider tree boundary.
  */
-export function useTheme() {
+export function useTheme(): ThemeContextType {
   const context = useContext(ThemeContext);
 
   if (!context) {

@@ -1,11 +1,11 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { booksService } from '@/services/booksDataServiceMockApi';
-import { useSnack } from '@/context/Snack/SnackProvider';
-import { SNACK_TYPES } from '@/constants/snack';
-import { ROUTES } from '@/routers/routes';
-import type { CatalogFilterType } from '@/types/filter';
-import type { Book } from '@/types/book';
+import { booksService } from '@/services';
+import { useSnack } from '@/context/Snack';
+import { SNACKS } from '@/context/Snack/constants/snackConstants';
+import { ROUTES } from '@/router/routes';
+import type { BookFilterField } from '@/types/booksFilter';
+import type { Book } from '@/views/BooksDomain/types/book';
 
 export function useBookDetailPageLogic(initialBook: Book) {
   const [localBook, setLocalBook] = useState<Book>(initialBook);
@@ -23,10 +23,7 @@ export function useBookDetailPageLogic(initialBook: Book) {
    * FIXED: Dispatches formal native browser query strings (?author=Value)
    * to guarantee zero-race execution steps during multi-page context shifts.
    */
-  const handleFilterRedirect = (
-    filterType: CatalogFilterType,
-    value: string
-  ) => {
+  const handleFilterRedirect = (filterType: BookFilterField, value: string) => {
     // Generates semantic endpoints e.g., /books?author=F.+Scott+Fitzgerald
     navigate(`${ROUTES.BOOKS}?${filterType}=${encodeURIComponent(value)}`);
   };
@@ -35,18 +32,18 @@ export function useBookDetailPageLogic(initialBook: Book) {
     const updatedStatus = !localBook.isFavorite;
     try {
       setLocalBook((prev) => ({ ...prev, isFavorite: updatedStatus }));
-      await booksService.patch(localBook.id, { isFavorite: updatedStatus });
+      await booksService.patch(localBook.bookId, { isFavorite: updatedStatus });
       showSnack(
         updatedStatus
           ? `"${localBook.title}" added to favorites.`
           : `"${localBook.title}" removed from favorites.`,
-        SNACK_TYPES.SUCCESS
+        SNACKS.SUCCESS
       );
     } catch (err) {
       setLocalBook((prev) => ({ ...prev, isFavorite: !updatedStatus }));
       showSnack(
         'Server failed to synchronize your favorite status.',
-        SNACK_TYPES.ERROR
+        SNACKS.ERROR
       );
     }
   };

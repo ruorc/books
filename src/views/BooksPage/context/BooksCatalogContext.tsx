@@ -10,9 +10,9 @@ import {
   BOOKS_PER_PAGE_LIMIT,
   SORT_FIELDS,
   SORT_DIRECTIONS,
-} from '@/constants/ui';
-import type { AdvancedFiltersState } from '@/types/catalogFilters';
-import type { Book } from '@/types/book';
+} from '@/views/BooksDomain/constants/booksConstants';
+import type { AdvancedFiltersState } from '@/types/booksFilter';
+import type { Book } from '@/views/BooksDomain/types/book';
 
 export interface CatalogState extends AdvancedFiltersState {
   booksMap: Map<string, Book>;
@@ -46,8 +46,8 @@ const initialState: CatalogState = {
   favOnly: false,
   globalSearch: '',
   titleSearch: '',
-  authorSearch: '',
-  yearSearch: '',
+  author: '',
+  year: '',
   sortField: SORT_FIELDS.CREATED_AT,
   sortDirection: SORT_DIRECTIONS.DESC,
 };
@@ -71,7 +71,7 @@ function catalogReducer(
     case 'FETCH_SUCCESS': {
       const { remoteBooks, isInitial } = action.payload;
       const nextMap = isInitial ? new Map() : new Map(state.booksMap);
-      remoteBooks.forEach((book) => nextMap.set(book.id, book));
+      remoteBooks.forEach((book) => nextMap.set(book.bookId, book));
       return {
         ...state,
         booksMap: nextMap,
@@ -91,7 +91,7 @@ function catalogReducer(
       return { ...state, page: state.page + 1 };
     case 'LOCAL_ADD_BOOK': {
       const nextMap = new Map(state.booksMap);
-      nextMap.set(action.payload.id, action.payload);
+      nextMap.set(action.payload.bookId, action.payload);
       return { ...state, booksMap: nextMap };
     }
     case 'SET_ADVANCED_FILTERS':

@@ -1,6 +1,6 @@
 import { Form } from 'react-router-dom';
 import { X, Save, PlusCircle } from 'lucide-react';
-import type { Book } from '@/types/book';
+import type { Book } from '@/views/BooksDomain/types/book';
 
 interface BookActionModalProps {
   isOpen: boolean;
@@ -79,7 +79,7 @@ export function BookActionModal({
                 type="text"
                 name="year"
                 required
-                defaultValue={book.year}
+                defaultValue={book.writingYear}
                 className="block w-full rounded-xl border border-gray-300 bg-gray-50 p-2.5 text-sm text-gray-900 outline-none focus:border-indigo-500 focus:ring-indigo-500 dark:border-gray-600 dark:bg-gray-700 dark:text-white"
               />
             </div>

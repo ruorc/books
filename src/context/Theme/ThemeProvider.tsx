@@ -1,20 +1,30 @@
 import {
   useEffect,
+  useLayoutEffect,
   useState,
   useMemo,
   useCallback,
-  type PropsWithChildren,
+  type ReactNode,
 } from 'react';
-import { THEME_KEY, DEFAULT_THEME, THEMES } from '@/constants/theme';
+import { THEME_KEY, DEFAULT_THEME, THEMES } from './constants/themeConstants';
 import { ThemeContext, isValidTheme } from './ThemeContext';
-import type { Theme } from '@/types/theme';
+
+import type { Theme } from './types/theme';
+
+/**
+ * Structural contract defining properties expected by the global application theme coordinator.
+ */
+interface ThemeProviderProps {
+  /** The composite React element node children nested within the visual theme boundary tree */
+  readonly children: ReactNode;
+}
 
 /**
  * Context Provider encapsulating color palette theme management, hardware preferences, and storage tracking.
  * Restores persisted configurations, listens to operating system media preferences, and synchronizes cross-tab events.
  * Fully optimized under React 19 context rendering constraints and free from tag descriptors.
  */
-export function ThemeProvider({ children }: PropsWithChildren) {
+export function ThemeProvider({ children }: ThemeProviderProps) {
   const [theme, setThemeState] = useState<Theme>(() => {
     const saved = localStorage.getItem(THEME_KEY);
 
@@ -39,7 +49,7 @@ export function ThemeProvider({ children }: PropsWithChildren) {
     return () => mediaQuery.removeEventListener('change', handleChange);
   }, []);
 
-  useEffect(() => {
+  useLayoutEffect(() => {
     document.documentElement.classList.toggle(THEMES.DARK, isDark);
   }, [isDark]);
 

@@ -1,10 +1,11 @@
+import { type ReactNode } from 'react';
+
 /**
  * Presentation view component displaying the primary title and background text.
  * Introduces the technical purpose of the application by highlighting
  * the architectural differences between Class and Functional paradigms.
- * Written strictly in plain textual format without any token or param tags.
  */
-export function AboutHeader() {
+export function AboutHeader(): ReactNode {
   return (
     <section className="text-center space-y-4 sm:text-left">
       <h1 className="text-3xl font-black tracking-tight text-slate-900 dark:text-slate-50 sm:text-4xl">

@@ -1,8 +1,9 @@
-import { LOADER_ACCESSIBILITY_TEXT } from '@/constants/ui';
+import { type ReactNode } from 'react';
+
+const LOADER_ACCESSIBILITY_TEXT = 'Loading page content...' as const;
 
 /**
  * Structural communication contract defining parameters accepted by the PageLoader container.
- * Features mandatory independent property documentation layout specifications.
  */
 interface PageLoaderProps {
   /** Optional atomic Tailwind CSS class string used to customize layout height and spacing boundaries */
@@ -12,9 +13,10 @@ interface PageLoaderProps {
 /**
  * Centered Asynchronous Page Loading Indicator Component.
  * Establishes accessible status trees via semantic live region nodes for screen reader tracking.
- * Operates under strict tagless documentation guidelines with zero inline comments inside JSX.
  */
-export function PageLoader({ className = 'h-[50vh]' }: PageLoaderProps) {
+export const PageLoader: React.FC<PageLoaderProps> = ({
+  className = 'h-[50vh]',
+}): ReactNode => {
   return (
     <div
       role="status"
@@ -25,4 +27,4 @@ export function PageLoader({ className = 'h-[50vh]' }: PageLoaderProps) {
       <span className="sr-only">{LOADER_ACCESSIBILITY_TEXT}</span>
     </div>
   );
-}
+};

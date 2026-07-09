@@ -1,10 +1,10 @@
 import { useLoaderData, useNavigation } from 'react-router-dom';
 import { ArrowLeft, Heart, Calendar, User, Edit3 } from 'lucide-react';
-import { FILTER_TYPES } from '@/constants/ui';
-import { booksService } from '@/services/booksDataServiceMockApi';
+import { FILTER_FIELDS } from '@/views/BooksDomain/constants/booksConstants';
+import { booksService } from '@/services';
 import { useBookDetailPageLogic } from './hooks/useBookDetailPageLogic';
 import { BookActionModal } from './BookActionModal';
-import type { Book } from '@/types/book';
+import type { Book } from '@/views/BooksDomain/types/book';
 
 /**
  * Native React Router v7 Data Loader.
@@ -129,7 +129,7 @@ export default function BookDetailPage() {
             <button
               type="button"
               onClick={() =>
-                handleFilterRedirect(FILTER_TYPES.AUTHOR, localBook.author)
+                handleFilterRedirect(FILTER_FIELDS.AUTHOR, localBook.author)
               }
               className="inline-flex items-center gap-1.5 rounded-xl bg-indigo-50 px-3 py-1.5 font-medium text-indigo-800 transition-colors hover:bg-indigo-100 focus:outline-none dark:bg-indigo-950/40 dark:text-indigo-300 dark:hover:bg-indigo-900/60 cursor-pointer"
             >
@@ -139,12 +139,15 @@ export default function BookDetailPage() {
             <button
               type="button"
               onClick={() =>
-                handleFilterRedirect(FILTER_TYPES.YEAR, localBook.year)
+                handleFilterRedirect(
+                  FILTER_FIELDS.WRITING_YEAR,
+                  localBook.writingYear
+                )
               }
               className="inline-flex items-center gap-1.5 rounded-xl bg-purple-50 px-3 py-1.5 font-medium text-purple-800 transition-colors hover:bg-purple-100 focus:outline-none dark:bg-purple-950/40 dark:text-purple-300 dark:hover:bg-purple-900/60 cursor-pointer"
             >
               <Calendar className="h-4 w-4 text-purple-500" /> Written in{' '}
-              {localBook.year}
+              {localBook.writingYear}
             </button>
           </div>
 

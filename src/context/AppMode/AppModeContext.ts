@@ -1,6 +1,7 @@
 import { createContext, useContext } from 'react';
-import { MODES } from '@/constants/mode';
-import type { AppMode } from '@/types/mode';
+import { MODES } from './constants/modeConstants';
+
+import type { AppMode } from './types/mode';
 
 /**
  * Defines the AppMode context payload structure, including the current mode,
@@ -41,7 +42,7 @@ export const isValidAppMode = (value: string | null): value is AppMode => {
  * Throws a descriptive exception error when executed outside of an active AppModeProvider tree boundary.
  * Eliminates runtime null checks for call sites by guaranteeing a defined state contract payload.
  */
-export function useAppMode() {
+export function useAppMode(): AppModeContextType {
   const context = useContext(AppModeContext);
 
   if (context === undefined) {

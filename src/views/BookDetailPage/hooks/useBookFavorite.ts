@@ -1,8 +1,8 @@
 import { useState } from 'react';
-import { booksService } from '@/services/booksDataServiceMockApi';
-import { useSnack } from '@/context/Snack/SnackProvider';
-import { SNACK_TYPES } from '@/constants/snack';
-import type { Book } from '@/types/book';
+import { booksService } from '@/services';
+import { useSnack } from '@/context/Snack';
+import { SNACKS } from '@/context/Snack/constants/snackConstants';
+import type { Book } from '@/views/BooksDomain/types/book';
 
 /**
  * Custom hook encapsulating optimistic favorite synchronization logic for a single book.
@@ -18,13 +18,13 @@ export function useBookFavorite(initialBook: Book) {
       // Optimistic Update: instantly mutate state to secure fast feedback loop
       setBook((prev) => ({ ...prev, isFavorite: updatedStatus }));
 
-      await booksService.patch(book.id, { isFavorite: updatedStatus });
+      await booksService.patch(book.bookId, { isFavorite: updatedStatus });
 
       showSnack(
         updatedStatus
           ? `"${book.title}" added to favorites.`
           : `"${book.title}" removed from favorites.`,
-        SNACK_TYPES.SUCCESS
+        SNACKS.SUCCESS
       );
     } catch (err) {
       // Rollback: revert state properties if the network request fails
@@ -32,7 +32,7 @@ export function useBookFavorite(initialBook: Book) {
 
       showSnack(
         'Server failed to synchronize your favorite status.',
-        SNACK_TYPES.ERROR
+        SNACKS.ERROR
       );
     }
   };

@@ -1,7 +1,10 @@
 import { motion, AnimatePresence } from 'framer-motion';
 import { X, SlidersHorizontal, ArrowUpDown, RefreshCw } from 'lucide-react';
-import { SORT_FIELDS, SORT_DIRECTIONS } from '@/constants/ui';
-import type { AdvancedFiltersState } from '@/types/catalogFilters';
+import {
+  SORT_FIELDS,
+  SORT_DIRECTIONS,
+} from '@/views/BooksDomain/constants/booksConstants';
+import type { AdvancedFiltersState } from '@/types/booksFilter';
 
 interface AdvancedSearchModalProps {
   isOpen: boolean;
@@ -20,8 +23,8 @@ export function AdvancedSearchModal({
     onChange({
       globalSearch: '',
       titleSearch: '',
-      authorSearch: '',
-      yearSearch: '',
+      author: '',
+      year: '',
       sortField: SORT_FIELDS.CREATED_AT,
       sortDirection: SORT_DIRECTIONS.DESC,
     });
@@ -100,8 +103,8 @@ export function AdvancedSearchModal({
                   </label>
                   <input
                     type="text"
-                    value={filters.authorSearch}
-                    onChange={(e) => onChange({ authorSearch: e.target.value })}
+                    value={filters.author}
+                    onChange={(e) => onChange({ author: e.target.value })}
                     placeholder="Filter explicitly by author..."
                     className="block w-full rounded-xl border border-gray-300 bg-gray-50 p-2.5 text-sm text-gray-900 outline-none focus:border-indigo-500 focus:ring-indigo-500 dark:border-gray-600 dark:bg-gray-700 dark:text-white"
                   />
@@ -112,8 +115,8 @@ export function AdvancedSearchModal({
                   </label>
                   <input
                     type="text"
-                    value={filters.yearSearch}
-                    onChange={(e) => onChange({ yearSearch: e.target.value })}
+                    value={filters.year}
+                    onChange={(e) => onChange({ year: e.target.value })}
                     placeholder="Filter explicitly by year..."
                     className="block w-full rounded-xl border border-gray-300 bg-gray-50 p-2.5 text-sm text-gray-900 outline-none focus:border-indigo-500 focus:ring-indigo-500 dark:border-gray-600 dark:bg-gray-700 dark:text-white"
                   />
@@ -139,7 +142,9 @@ export function AdvancedSearchModal({
                     >
                       <option value={SORT_FIELDS.TITLE}>Book Title</option>
                       <option value={SORT_FIELDS.AUTHOR}>Author Name</option>
-                      <option value={SORT_FIELDS.YEAR}>Publication Year</option>
+                      <option value={SORT_FIELDS.WRITING_YEAR}>
+                        WRITING_YEAR Year
+                      </option>
                       <option value={SORT_FIELDS.CREATED_AT}>
                         Date Registered
                       </option>

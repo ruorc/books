@@ -1,7 +1,7 @@
 import { useEffect, useRef } from 'react';
 import { AlertCircle, Inbox } from 'lucide-react';
 import { BookCard } from '@/components/BookCard';
-import PageLoader from '@/components/PageLoader';
+import { PageLoader } from '@/components/PageLoader';
 import { useBooksCatalog } from '@/views/BooksPage/hooks/useBooksCatalog';
 import { useBooksCatalogContext } from './context/BooksCatalogContext';
 
@@ -71,7 +71,7 @@ export function FuncCatalog() {
       <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4">
         {filteredBooks.map((book) => (
           <BookCard
-            key={book.id}
+            key={book.bookId}
             book={book}
             isFavorite={book.isFavorite}
             onToggleFavorite={handleToggleFavorite}
@@ -79,13 +79,13 @@ export function FuncCatalog() {
             onAuthorClick={(author: string) =>
               catalogDispatch({
                 type: 'SET_ADVANCED_FILTERS',
-                payload: { authorSearch: author },
+                payload: { author: author },
               })
             }
             onYearClick={(year: string) =>
               catalogDispatch({
                 type: 'SET_ADVANCED_FILTERS',
-                payload: { yearSearch: year },
+                payload: { year: year },
               })
             }
           />

@@ -1,4 +1,4 @@
-import { useId } from 'react';
+import { useId, type ReactNode } from 'react';
 import { Cpu } from 'lucide-react';
 
 const TECH_STACK = [
@@ -40,9 +40,8 @@ const TECH_STACK = [
 /**
  * Presentation layout view displaying the foundational engineering stack.
  * Renders a responsive wrapped grid matrix of verified framework badges.
- * Formatted strictly under plain english tagless rules with clear screen reader contexts.
  */
-export function AboutTechStack() {
+export function AboutTechStack(): ReactNode {
   const headingId = useId();
 
   return (

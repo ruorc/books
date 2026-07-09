@@ -6,6 +6,8 @@ export interface RetryOptions {
   readonly retries?: number;
   /** The delay duration in milliseconds between consecutive retry attempts */
   readonly delay?: number;
+  /** The maximum delay duration in milliseconds between consecutive retry attempts */
+  readonly maxDelay?: number;
   /** An AbortSignal instance allowing the operation to be cancelled mid-flight */
   readonly signal?: AbortSignal;
 }
@@ -13,7 +15,6 @@ export interface RetryOptions {
 /**
  * Baseline filtration contract hosting default criteria attributes used across network services.
  * Features compile-time model mapping constraints to validate field selection boundaries.
- * Documentation is written as plain textual prose entirely free from descriptor tags.
  */
 export interface BaseQueryFilters<T = Record<string, unknown>> {
   /** A plaintext keyword used for global text or title matching queries */

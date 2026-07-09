@@ -1,7 +1,7 @@
 import { useEffect, useState, type SyntheticEvent } from 'react'; // Swapped FormEvent to SyntheticEvent
 import { motion, AnimatePresence } from 'framer-motion';
 import { X, Save, PlusCircle } from 'lucide-react';
-import type { Book, BookPayload } from '@/types/book';
+import type { Book, BookPayload } from '@/views/BooksDomain/types/book';
 import { generateStablePicsumUrl } from '@/constants/ui';
 
 interface BookFormModalProps {
@@ -31,7 +31,7 @@ export function BookFormModal({
     if (initialData) {
       setTitle(initialData.title);
       setAuthor(initialData.author);
-      setYear(initialData.year);
+      setYear(initialData.writingYear);
       setDescription(initialData.description);
       setCoverImage(initialData.coverImage);
     } else {
@@ -53,7 +53,7 @@ export function BookFormModal({
     const payload: Omit<BookPayload, 'isFavorite'> = {
       title: title.trim(),
       author: author.trim(),
-      year: year.trim(),
+      writingYear: year.trim(),
       description: description.trim(),
       // Fallback placeholder image if no cover URL is specified by the user
       coverImage: coverImage.trim() || generateStablePicsumUrl(),

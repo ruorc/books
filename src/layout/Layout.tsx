@@ -1,15 +1,16 @@
 import { useEffect, useRef } from 'react';
 import { Outlet } from 'react-router-dom';
 import { useAppMode } from '@/context/AppMode';
-import { useProjectTheme } from '@/context/Theme';
+import { useTheme } from '@/context/Theme';
 import { useSnack } from '@/context/Snack';
-import { SNACK_TYPES } from '@/constants/snack';
-import { THEME_LABELS } from '@/constants/theme';
-import { ENGINE_LABELS } from '@/constants/mode';
-import PageLoader from '@/components/PageLoader';
-import Footer from './footer/Footer';
-import Header from './header/Header';
-import Main from './main/Main';
+import { SNACKS } from '@/context/Snack/constants/snackConstants';
+import { THEME_LABELS } from '@/context/Theme/constants/themeConstants';
+import { ENGINE_LABELS } from '@/context/AppMode/constants/modeConstants';
+import { PageLoader } from '@/components/PageLoader';
+
+import { Header } from './Header/Header';
+import { Main } from './Main/Main';
+import { Footer } from './Footer/Footer';
 
 /**
  * Root Application Layout Wrapper Component establishing the system frame scaffolding.
@@ -17,11 +18,10 @@ import Main from './main/Main';
  * Monitors mutations inside user interface style contexts and architecture paradigms reactively.
  * Leverages local persistence references to dispatch transient status tracking push alerts
  * via the global notifications system safely without inducing redundant state cycle drops.
- * Follows strict constraints: zero inline comments in JSX and tagless engineering prose documentation.
  */
-export default function Layout() {
+export const Layout: React.FC = () => {
   const { isModeLoading, mode } = useAppMode();
-  const { theme } = useProjectTheme();
+  const { theme } = useTheme();
   const { showSnack } = useSnack();
 
   const previousModeRef = useRef(mode);
@@ -36,7 +36,7 @@ export default function Layout() {
 
     showSnack(
       `Switched rendering architecture engine to: ${modeLabel}`,
-      SNACK_TYPES.INFO
+      SNACKS.INFO
     );
   }, [mode, showSnack]);
 
@@ -47,7 +47,7 @@ export default function Layout() {
 
     const themeLabel = THEME_LABELS[theme];
 
-    showSnack(`Theme preference updated to: ${themeLabel}`, SNACK_TYPES.INFO);
+    showSnack(`Theme preference updated to: ${themeLabel}`, SNACKS.INFO);
   }, [theme, showSnack]);
 
   return (
@@ -63,4 +63,4 @@ export default function Layout() {
       <Footer />
     </div>
   );
-}
+};

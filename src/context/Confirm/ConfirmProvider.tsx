@@ -1,13 +1,16 @@
-import {
-  useState,
-  useCallback,
-  useRef,
-  useMemo,
-  type PropsWithChildren,
-} from 'react';
-import { ConfirmModal } from '@/components/ConfirmModal';
+import { useState, useCallback, useRef, useMemo, type ReactNode } from 'react';
+import { ConfirmModal } from './components/ConfirmModal';
 import { ConfirmContext } from './ConfirmContext';
-import type { ConfirmOptions } from './ConfirmContext';
+
+import type { ConfirmOptions } from './types/confirm';
+
+/**
+ * Structural contract defining properties expected by the global confirmation lifecycle coordinator.
+ */
+interface ConfirmProviderProps {
+  /** The composite React element node children nested within the global confirm state pipeline */
+  readonly children: ReactNode;
+}
 
 /**
  * Context Provider managing a centralized asynchronous confirmation lifecycle pipeline.
@@ -15,7 +18,7 @@ import type { ConfirmOptions } from './ConfirmContext';
  * Manages mutable promise resolver references internally to intercept user choice vectors seamlessly.
  * Fully optimized under React 19 context rendering constraints and free from tag descriptors.
  */
-export function ConfirmProvider({ children }: PropsWithChildren) {
+export function ConfirmProvider({ children }: ConfirmProviderProps) {
   const [isOpen, setIsOpen] = useState(false);
   const [modalOptions, setModalOptions] = useState<ConfirmOptions>({
     title: '',

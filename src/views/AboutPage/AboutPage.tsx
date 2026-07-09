@@ -1,8 +1,11 @@
-import { Code2, Terminal, Palette, Sliders } from 'lucide-react';
-import { MODES } from '@/constants/mode';
-import { THEMES, THEME_LABELS } from '@/constants/theme';
+import { Palette, Sliders, Code2, Terminal } from 'lucide-react';
+import {
+  MODES,
+  ENGINE_DESCRIPTORS,
+} from '@/context/AppMode/constants/modeConstants';
+import { THEMES, THEME_LABELS } from '@/context/Theme/constants/themeConstants';
 import { useAppMode } from '@/context/AppMode';
-import { useProjectTheme } from '@/context/Theme';
+import { useTheme } from '@/context/Theme';
 
 import { AboutCard } from './components/AboutCard';
 import { AboutHeader } from './components/AboutHeader';
@@ -14,36 +17,19 @@ const PALETTE_ICON_COLORS = {
   light: 'bg-orange-500/10 text-orange-500',
 } as const;
 
-const ENGINE_METRICS = {
-  [MODES.FUNCTIONAL]: {
-    title: 'Functional (Hooks)',
-    icon: Code2,
-    color: 'bg-sky-500/10 text-sky-500',
-    description:
-      'The catalog is currently driven by functional components, useEffect hooks, and custom logic.',
-  },
-  [MODES.CLASS]: {
-    title: 'Class Components',
-    icon: Terminal,
-    color: 'bg-amber-500/10 text-amber-500',
-    description:
-      'The catalog is currently rendered via JavaScript classes using componentDidMount and componentDidUpdate methods.',
-  },
-} as const;
-
 /**
  * Dashboard Runtime Status View Component rendering the core application summary page.
  * Manages reactive evaluation of the visual style preferences and rendering strategies.
  * Provides high-density engineering prose documentation strictly free from any parameter tags.
  */
-export default function AboutPage() {
+export const AboutPage: React.FC = () => {
   const { mode } = useAppMode();
-  const { theme, isDark } = useProjectTheme();
+  const { theme, isDark } = useTheme();
 
-  const activeEngine = ENGINE_METRICS[mode];
   const systemThemeLabel = isDark
     ? THEME_LABELS[THEMES.DARK]
     : THEME_LABELS[THEMES.LIGHT];
+
   const paletteColorClass = isDark
     ? PALETTE_ICON_COLORS.dark
     : PALETTE_ICON_COLORS.light;
@@ -54,6 +40,14 @@ export default function AboutPage() {
       : `${THEME_LABELS[theme]} Theme`;
 
   const themeDisplayDescription = `Active preference: ${theme}. The inline anti-flicker script efficiently prevents any unstyled content flashes upon page reload.`;
+
+  const engineTitle =
+    mode === MODES.FUNCTIONAL ? 'Functional (Hooks)' : 'Class Components';
+  const engineColorClass =
+    mode === MODES.FUNCTIONAL
+      ? 'bg-sky-500/10 text-sky-500'
+      : 'bg-amber-500/10 text-amber-500';
+  const engineIcon = mode === MODES.FUNCTIONAL ? Code2 : Terminal;
 
   return (
     <div className="mx-auto max-w-4xl space-y-12">
@@ -73,10 +67,10 @@ export default function AboutPage() {
         <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
           <AboutCard
             title="Rendering Engine"
-            value={activeEngine.title}
-            icon={activeEngine.icon}
-            iconColorClass={activeEngine.color}
-            description={activeEngine.description}
+            value={engineTitle}
+            icon={engineIcon}
+            iconColorClass={engineColorClass}
+            description={ENGINE_DESCRIPTORS[mode]}
           />
 
           <AboutCard
@@ -92,4 +86,4 @@ export default function AboutPage() {
       <AboutSecurity />
     </div>
   );
-}
+};

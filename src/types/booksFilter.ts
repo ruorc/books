@@ -1,4 +1,8 @@
-import { FILTER_FIELDS, SORT_FIELDS, SORT_DIRECTIONS } from '@/constants/books';
+import {
+  FILTER_FIELDS,
+  SORT_FIELDS,
+  SORT_DIRECTIONS,
+} from '@/views/BooksDomain/constants/booksConstants';
 
 /**
  * Compile-time union type extracted directly from runtime FILTER_FIELDS constants.
@@ -26,7 +30,7 @@ export type SortDirection =
  * Dynamic map representing all targeted search fields mapped explicitly from BookFilterField keys.
  * Automatically expands if new fields are appended to the core FILTER_FIELDS constant registry.
  */
-export type TargetedFiltersState = Record<BookFilterField, string>;
+export type TargetedFiltersState = Readonly<Record<BookFilterField, string>>;
 
 /**
  * Structured state definition capturing all multidimensional query and sorting metrics.

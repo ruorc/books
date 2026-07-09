@@ -8,4 +8,4 @@
 export { useConfirm } from './ConfirmContext';
 export { ConfirmProvider } from './ConfirmProvider';
 
-export type { ConfirmOptions, ConfirmContextType } from './ConfirmContext';
+export type { ConfirmOptions, ConfirmContextType } from './types/confirm';
