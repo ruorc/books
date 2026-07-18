@@ -3,12 +3,12 @@
  */
 export interface AuthInterceptor {
   /**
-   * Retrieves the current access token string from state or storage.
+   * Resolves authentication credentials required to authorize secure egress gateway transactions.
    */
   readonly getAccessToken: () => Promise<string | null> | string | null;
 
   /**
-   * Triggers session credential renewal operations and returns true if recovery was successful.
+   * Recovers dead session states contextually before pipeline failures collapse active layout streams.
    */
   readonly refreshSession: () => Promise<boolean>;
 }

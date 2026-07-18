@@ -5,8 +5,7 @@ import { useAppMode } from '@/context/AppMode';
 const STATIC_YEAR = 2026 as const;
 
 /**
- * Strictly mapped architectural variant borders to keep the JSX layout clean and readable.
- * Abstracted safely within the local file boundary since styles change reactively based on mode.
+ * Active runtime engine layout variant mapping.
  */
 const BADGE_VARIANT_STYLES = {
   [MODES.FUNCTIONAL]: 'border-sky-200/50 dark:border-sky-700/50',
@@ -18,7 +17,7 @@ const BADGE_VARIANT_STYLES = {
  * Provides copyright specifications, comparative architecture summaries, and
  * a live semantic visual badge tracking the active runtime strategy engine.
  */
-export const Footer: React.FC = () => {
+export const Footer = (): React.JSX.Element => {
   const { mode } = useAppMode();
 
   return (

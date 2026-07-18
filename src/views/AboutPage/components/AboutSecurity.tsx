@@ -1,4 +1,3 @@
-import { type ReactNode } from 'react';
 import { ShieldAlert } from 'lucide-react';
 
 const SECURITY_ADVISORY_TITLE = 'API Security Advisory' as const;
@@ -11,7 +10,7 @@ const SECURITY_ADVISORY_BODY_AFTER_CODE =
  * Advisory notification block displaying environment safety configurations.
  * Informs the developer about token exclusion strategies using semantic node tiers.
  */
-export function AboutSecurity(): ReactNode {
+export function AboutSecurity(): React.JSX.Element {
   return (
     <section
       role="note"

@@ -3,12 +3,10 @@ import { ROUTES } from '@/router/routes';
 
 /**
  * Universal Fallback Error Presentation View.
- * Renders a semantic operational message boundary when the application routing network
- * encounters an unregistered destination path pattern.
- * Manages responsive structural layouts, dark theme topography adaptations,
- * and handles safe keyboard focus indicators during fallback home redirection.
+ * Catches all unmapped routing vectors to prevent runtime application crashes
+ * and breaks broken navigation loops by providing a safe return path to the application root.
  */
-export const NotFoundPage: React.FC = () => {
+export const NotFoundPage = (): React.JSX.Element => {
   return (
     <div className="flex min-h-[60vh] flex-col items-center justify-center px-4 text-center">
       <h1 className="animate-pulse text-9xl font-black text-sky-500">404</h1>
@@ -24,7 +22,7 @@ export const NotFoundPage: React.FC = () => {
 
       <Link
         to={ROUTES.HOME}
-        className="mt-6 rounded-xl bg-sky-500 px-6 py-3 text-sm font-semibold text-white shadow-md transition-colors hover:bg-sky-400 focus:outline-none focus-visible:ring-2 focus-visible:ring-sky-500 focus-visible:ring-offset-2 dark:focus-visible:ring-offset-slate-950"
+        className="mt-6 rounded-xl bg-sky-500 px-6 py-3 text-sm font-semibold text-white shadow-md transition-colors hover:bg-sky-400 focus-visible:ring-2 focus-visible:ring-sky-500 focus-visible:ring-offset-2 dark:focus-visible:ring-offset-slate-950"
       >
         Return to Home
       </Link>

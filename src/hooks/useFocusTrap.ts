@@ -3,7 +3,6 @@ import { useEffect, useRef } from 'react';
 /**
  * Structural communication contract defining all mandatory parameters
  * required to initialize the keyboard accessibility focus trap tracker.
- * Features independent text blocks positioned directly above every signature field.
  */
 interface UseFocusTrapProps {
   /** Boolean toggle indicating whether the structural interceptor engine is active */
@@ -13,71 +12,84 @@ interface UseFocusTrapProps {
 }
 
 /**
- * Structural contract defining the immutable references returned by the focus trap tracker
- * to bind inside the target layout interactive elements matrix.
+ * Structural contract defining the reference bound to the interactive container node.
  */
 interface UseFocusTrapResult {
-  /** Mutable React reference bound strictly to the first interactive node of the view */
-  readonly firstRef: React.RefObject<HTMLButtonElement | null>;
-  /** Mutable React reference bound strictly to the second interactive node of the view */
-  readonly secondRef: React.RefObject<HTMLButtonElement | null>;
-  /** Mutable React reference bound strictly to the third interactive node of the view */
-  readonly thirdRef: React.RefObject<HTMLButtonElement | null>;
+  /** Mutable React reference bound strictly to the outer wrapper container element */
+  readonly containerRef: React.RefObject<HTMLDivElement | null>;
 }
 
 /**
  * Universal layout-agnostic custom hook managing accessibility focus cycles.
  * Contextually locks keyboard tab shifting vectors strictly inside active overlay boxes.
  * Blocks window viewports background scrolling interactions safely to protect focus trees.
- * Fully compliant with plain english tagless documentation boundaries.
  */
 export function useFocusTrap({
   isOpen,
   onClose,
 }: UseFocusTrapProps): UseFocusTrapResult {
-  const firstElementRef = useRef<HTMLButtonElement>(null);
-  const secondElementRef = useRef<HTMLButtonElement>(null);
-  const thirdElementRef = useRef<HTMLButtonElement>(null);
+  const containerRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     if (!isOpen) return;
+
+    const container = containerRef.current;
+
+    if (!container) return;
 
     const originalOverflow = window.getComputedStyle(document.body).overflow;
 
     document.body.style.overflow = 'hidden';
 
+    /**
+     * Queries all potentially interactive semantic HTML elements within the active container.
+     */
+    const getFocusableElements = (): readonly HTMLElement[] => {
+      const selectors =
+        'button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])';
+      const nodes = container.querySelectorAll<HTMLElement>(selectors);
+
+      return Array.from(nodes);
+    };
+
     const handleKeyDown = (e: KeyboardEvent) => {
       if (e.key === 'Escape') {
         onClose();
+
         return;
       }
 
       if (e.key === 'Tab') {
-        const focusableElements = [
-          firstElementRef.current,
-          secondElementRef.current,
-          thirdElementRef.current,
-        ];
+        const focusable = getFocusableElements();
 
-        const activeIndex = focusableElements.indexOf(
-          document.activeElement as HTMLButtonElement
-        );
+        if (focusable.length === 0) return;
+
+        const firstEl = focusable[0];
+        const lastEl = focusable[focusable.length - 1];
+        const activeElement = document.activeElement as HTMLElement;
 
         if (e.shiftKey) {
-          if (activeIndex === 0) {
-            thirdElementRef.current?.focus();
+          if (activeElement === firstEl) {
+            lastEl?.focus();
             e.preventDefault();
           }
         } else {
-          if (activeIndex === focusableElements.length - 1) {
-            firstElementRef.current?.focus();
+          if (activeElement === lastEl) {
+            firstEl?.focus();
             e.preventDefault();
           }
         }
       }
     };
 
-    const focusTimeout = setTimeout(() => thirdElementRef.current?.focus(), 50);
+    // Automatically shift focus to the first interactive node upon opening
+    const focusTimeout = setTimeout(() => {
+      const focusable = getFocusableElements();
+
+      if (focusable.length > 0) {
+        focusable[0]?.focus();
+      }
+    }, 50);
 
     window.addEventListener('keydown', handleKeyDown);
 
@@ -88,9 +100,5 @@ export function useFocusTrap({
     };
   }, [isOpen, onClose]);
 
-  return {
-    firstRef: firstElementRef,
-    secondRef: secondElementRef,
-    thirdRef: thirdElementRef,
-  };
+  return { containerRef };
 }

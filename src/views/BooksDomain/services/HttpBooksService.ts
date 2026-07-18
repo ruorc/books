@@ -1,7 +1,7 @@
 import { HttpCrudService } from '@/services/http/HttpCrudService';
 
-import type { Book, BookPayload } from '@/views/BooksDomain/types/book';
-import type { BooksService } from '@/views/BooksDomain/types/booksService';
+import type { Book, BookPayload } from '../types/book';
+import type { BooksService } from '../types/booksService';
 import type { AuthInterceptor } from '@/types/auth';
 
 /**
@@ -14,6 +14,7 @@ export class HttpBooksService
 {
   /**
    * Initializes the specialized Book transport service with endpoint validation and authorization interceptors.
+   * Maps foundational connection vectors and security tokens required by secure egress gateways.
    */
   constructor(endpointUrl: string, authInterceptor?: AuthInterceptor) {
     super(endpointUrl, authInterceptor);

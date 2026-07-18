@@ -1,17 +1,16 @@
 import { HttpBooksService } from './HttpBooksService';
 import { HttpServiceError } from '@/services/http/HttpServiceError';
 
-import type { Book, BookPayload } from '@/views/BooksDomain/types/book';
+import type { Book, BookPayload } from '../types/book';
 import type { RetryOptions, QueryFilters } from '@/types/api';
 import type { AuthInterceptor } from '@/types/auth';
 import type {
   MockApiBooksService as MockApiBooksContract,
   MockApiUpdateOptions,
-} from '@/views/BooksDomain/types/booksService';
+} from '../types/booksService';
 
 /**
  * MockAPI adapter overriding default mechanisms to patch vendor constraints.
- * Implements strict type safety across all operations without relying on any explicit any types.
  */
 export class MockApiHttpBooksService
   extends HttpBooksService
@@ -25,7 +24,8 @@ export class MockApiHttpBooksService
   }
 
   /**
-   * Normalizes boolean values to strings and intercepts 404 responses to fallback empty arrays safely.
+   * Safe data retrieval pipeline adapting queries to target platform limitations.
+   * Intercepts vendor-specific empty collection failures to protect catalog state machines.
    */
   override async getAll(
     page: number,
@@ -57,7 +57,7 @@ export class MockApiHttpBooksService
   }
 
   /**
-   * Stamps auditing ISO timestamp strings during initial record injection processes.
+   * Entity factory mutation pipeline injecting required chronological indices.
    */
   override async create(book: Omit<BookPayload, 'isFavorite'>): Promise<Book> {
     const currentIsoTime = new Date().toISOString();
@@ -72,7 +72,8 @@ export class MockApiHttpBooksService
   }
 
   /**
-   * Updates targeted fields and cleans out hazardous immutable parameters like id from payloads.
+   * Structural update boundary stripping technical primary key constants.
+   * Guarantees metadata payload safety against cloud firewall schema validation crashes.
    */
   override async update(
     id: string,
@@ -95,7 +96,8 @@ export class MockApiHttpBooksService
   }
 
   /**
-   * Recomposes a virtual patch transaction utilizing standard retry-protected workflow calls.
+   * High-level transaction wrapper simulating atomic partial updates.
+   * bypasses vendor API ingestion gaps by synchronizing states via sequence tracing.
    */
   override async patch(id: string, partialData: Partial<Book>): Promise<Book> {
     try {
@@ -116,11 +118,6 @@ export class MockApiHttpBooksService
     } catch (error) {
       const errorMessage =
         error instanceof Error ? error.message : 'Unknown transport error';
-
-      console.error(
-        `[${this.constructor.name} Overridden Patch Error] Failed to delegate patch for book ID ${id}:`,
-        error
-      );
 
       throw new Error(
         `Failed to patch book fields on MockAPI: ${errorMessage}`,

@@ -8,24 +8,25 @@ import { HttpServiceError } from './HttpServiceError';
 export type RetryPredicate = (error: unknown) => boolean;
 
 /**
- * Evaluates whether a network error or specific HTTP status code qualifies for a retry attempt.
+ * Visual strategy evaluator guarding application pipelines against transient server failure states.
  */
 export const shouldRetryRequest: RetryPredicate = (error: unknown): boolean => {
   if (error instanceof HttpServiceError) {
     return (error.status >= 500 && error.status < 600) || error.status === 429;
   }
+
   return true;
 };
 
 /**
- * Iterative runner that executes an asynchronous operation with exponential backoff and full jitter.
- * Safely handles memory clearance for abort listeners and prevents stack overflow.
+ * Fault-tolerant execution container orchestrating progressive backoff transactions.
+ * Mitigates cloud gateway synchronization crashes by flattening traffic spikes using full jitter scheduling,
+ * while protecting underlying execution runtimes from stack trace exhaustion and thread blockages.
  */
 export async function runWithRetry<R>(
   fn: () => Promise<R>,
   retries: number,
   delay: number,
-  contextName: string,
   signal?: AbortSignal,
   shouldRetry?: RetryPredicate,
   maxDelay: number = NETWORK_CONFIG.DEFAULT_MAX_DELAY
@@ -59,24 +60,18 @@ export async function runWithRetry<R>(
       const cappedDelay = Math.min(currentDelay, maxDelay);
       const jitteredDelay = Math.random() * cappedDelay;
 
-      console.warn(
-        `[${contextName}] Network failed. Retrying in ${Math.round(jitteredDelay)}ms (max interval: ${Math.round(cappedDelay)}ms)... (${attemptsLeft} attempts left)`
-      );
-
       await new Promise<void>((resolve, reject) => {
-        let timer: ReturnType<typeof setTimeout> | undefined;
+        const cleanup = (): void => {
+          signal?.removeEventListener('abort', handleAbort);
+        };
 
-        const handleAbort = () => {
-          if (timer) clearTimeout(timer);
+        const handleAbort = (): void => {
+          clearTimeout(timer);
           cleanup();
           reject(signal?.reason || new Error('Aborted'));
         };
 
-        const cleanup = () => {
-          signal?.removeEventListener('abort', handleAbort);
-        };
-
-        timer = setTimeout(() => {
+        const timer = setTimeout(() => {
           cleanup();
           resolve();
         }, jitteredDelay);

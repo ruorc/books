@@ -1,5 +1,3 @@
-import { type ReactNode } from 'react';
-
 const LOADER_ACCESSIBILITY_TEXT = 'Loading page content...' as const;
 
 /**
@@ -14,9 +12,9 @@ interface PageLoaderProps {
  * Centered Asynchronous Page Loading Indicator Component.
  * Establishes accessible status trees via semantic live region nodes for screen reader tracking.
  */
-export const PageLoader: React.FC<PageLoaderProps> = ({
+export const PageLoader = ({
   className = 'h-[50vh]',
-}): ReactNode => {
+}: PageLoaderProps): React.JSX.Element => {
   return (
     <div
       role="status"

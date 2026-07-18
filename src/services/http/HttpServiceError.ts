@@ -2,14 +2,15 @@
  * Custom error class capturing the original server response and status code without extracting the payload stream prematurely.
  */
 export class HttpServiceError extends Error {
-  /** The HTTP numeric status code returned by the remote server infrastructure */
+  /** Enables immediate non-blocking status evaluation and error routing down the execution tree */
   public readonly status: number;
 
-  /** The raw native Web API Response object captured from the network fetch operation */
+  /** Preserves the unread server payload stream for lazy downstream diagnostic logging */
   public readonly response: Response;
 
   /**
-   * Initializes the error instance with the status code and raw server response metadata.
+   * Initializes the diagnostic tracking token with essential telemetry boundaries.
+   * Couples network failure vectors directly to application crash recovery layers.
    */
   constructor(status: number, response: Response) {
     super(`HTTP error. Status: ${status}`);

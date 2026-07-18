@@ -1,6 +1,6 @@
 import { createBrowserRouter, RouterProvider } from 'react-router-dom';
 import { Layout } from '@/layout/Layout';
-import { BooksLayout } from '@/views/BooksDomain/layouts/BooksLayout';
+// import { BooksLayout } from '@/views/BooksDomain/layouts/BooksLayout';
 import { PageLoader } from '@/components/PageLoader';
 import { ROUTES } from '@/router/routes';
 
@@ -11,26 +11,30 @@ import { ROUTES } from '@/router/routes';
  */
 const loadAboutPage = async () => {
   const { AboutPage } = await import('@/views/AboutPage');
+
   return { Component: AboutPage };
 };
-
+/* 
 const loadBooksPage = async () => {
   const { default: BooksPage } = await import('@/views/BooksPage');
+
   return { Component: BooksPage };
 };
 
 const loadBookDetailPage = async () => {
   const { BookDetailPage, bookDetailLoader, bookDetailAction } =
     await import('@/views/BookDetailPage');
+
   return {
     Component: BookDetailPage,
     loader: bookDetailLoader,
     action: bookDetailAction,
   };
 };
-
+ */
 const loadNotFoundPage = async () => {
   const { NotFoundPage } = await import('@/views/NotFoundPage');
+
   return { Component: NotFoundPage };
 };
 
@@ -48,7 +52,7 @@ const routesConfiguration = [
         path: ROUTES.HOME,
         lazy: loadAboutPage,
       },
-      {
+      /* {
         element: <BooksLayout />,
         children: [
           {
@@ -60,7 +64,7 @@ const routesConfiguration = [
             lazy: loadBookDetailPage,
           },
         ],
-      },
+      }, */
       {
         path: ROUTES.NOT_FOUND,
         lazy: loadNotFoundPage,
@@ -79,6 +83,6 @@ const router = createBrowserRouter(routesConfiguration);
  * Application Router root wrapper node infrastructure.
  * Clean functional wrapper passing the static router instance to the provider layer.
  */
-export function AppRouter() {
+export function AppRouter(): React.JSX.Element {
   return <RouterProvider router={router} />;
 }

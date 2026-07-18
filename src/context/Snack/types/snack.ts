@@ -1,4 +1,4 @@
-import { SNACKS } from '@/context/Snack/constants/snackConstants';
+import { SNACKS } from '../constants/snackConstants';
 
 /**
  * Compile-time union type extracted directly from runtime SNACKS constants.

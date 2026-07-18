@@ -1,6 +1,5 @@
 /**
  * Structural contract defining individual layout settings passed to trigger a modal dialog view.
- * Features mandatory property documentation layout specifications above every signature field.
  */
 export interface ConfirmOptions {
   /** The primary header text displayed at the top of the confirmation dialog */

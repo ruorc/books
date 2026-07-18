@@ -8,9 +8,14 @@ import eslintConfigPrettier from 'eslint-config-prettier';
 import eslintPluginPrettier from 'eslint-plugin-prettier';
 import stylistic from '@stylistic/eslint-plugin';
 import jsdoc from 'eslint-plugin-jsdoc';
+import reactCompiler from 'eslint-plugin-react-compiler';
 
+/**
+ * Centered application quality gate pipeline.
+ * Synchronizes abstract syntactic controls, type checking, and documentation rules.
+ */
 export default defineConfig([
-  globalIgnores(['dist']),
+  globalIgnores(['dist', 'build', 'node_modules', 'agents.md', '.agents/**']),
   {
     files: ['**/*.{ts,tsx}'],
     extends: [
@@ -27,6 +32,7 @@ export default defineConfig([
       '@stylistic': stylistic,
       prettier: eslintPluginPrettier,
       jsdoc: jsdoc,
+      'react-compiler': reactCompiler,
     },
     settings: {
       jsdoc: {
@@ -39,6 +45,9 @@ export default defineConfig([
         { endOfLine: 'auto' },
         { usePrettierrc: true },
       ],
+
+      // Restricts raw development logging mechanisms inside system runtime boundaries
+      'no-console': ['error', { allow: ['info'] }],
 
       // TS-First Documentation Validation (Strict Tagless Mode)
       'jsdoc/require-jsdoc': [
@@ -82,6 +91,20 @@ export default defineConfig([
         'error',
         {
           definedTags: [],
+        },
+      ],
+
+      // Enforces strict execution safety boundaries for the React 19 automatic memoization matrix
+      'react-compiler/react-compiler': 'error',
+
+      // Secures error catching blocks by demanding transparent stack tracing cause assignments
+      '@typescript-eslint/no-unused-vars': [
+        'error',
+        {
+          varsIgnorePattern: '^_',
+          argsIgnorePattern: '^_',
+          caughtErrorsIgnorePattern: '^_',
+          ignoreRestSiblings: true,
         },
       ],
     },

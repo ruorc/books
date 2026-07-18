@@ -15,10 +15,9 @@ const themeOptions = [
 
 /**
  * Smart UI Theme Selector Controller Component.
- * Orchestrates synchronous theme mutations and persistence tracking across browser viewports.
- * Placed strictly inside the header layout space to govern visual theme switching interactions.
+ * Synchronizes selected visual palettes and manages cross-tab theme persistence.
  */
-export function ThemeSelector() {
+export function ThemeSelector(): React.JSX.Element {
   const { theme, setTheme } = useTheme();
 
   return (

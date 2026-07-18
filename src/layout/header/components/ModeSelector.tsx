@@ -36,10 +36,13 @@ interface ModeSelectorProps {
 
 /**
  * Smart Architecture Mode Controller Component.
- * Orchestrates layout strategy switches between class-based and functional engines.
- * Placed strictly inside the application layout space to govern top-level interaction rings.
+ * Toggles application runtime environment state between class-based and functional rendering flows.
  */
-export function ModeSelector({ mode, onChange, isLoading }: ModeSelectorProps) {
+export function ModeSelector({
+  mode,
+  onChange,
+  isLoading,
+}: ModeSelectorProps): React.JSX.Element {
   return (
     <SegmentedControl
       id={MODE_LAYOUT_ID}

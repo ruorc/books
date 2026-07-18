@@ -5,7 +5,6 @@ import type { Theme } from './types/theme';
 
 /**
  * Structural contract defining properties and payload metrics managed by the Theme context.
- * Features mandatory property documentation layout specifications above every signature field.
  */
 export interface ThemeContextType {
   /** The currently selected active theme configuration preference mode */
@@ -18,7 +17,6 @@ export interface ThemeContextType {
 
 /**
  * React context storing the active client-side visual theme preference configuration profile.
- * The initial undefined default value enforces execution parameters inside a matching provider boundary.
  */
 export const ThemeContext = createContext<ThemeContextType | undefined>(
   undefined
@@ -26,7 +24,6 @@ export const ThemeContext = createContext<ThemeContextType | undefined>(
 
 /**
  * Type guard validation verifying if a raw storage string exactly matches permitted theme literal constraints.
- * Assesses input data consistency by checking matching variables against known single source of truth configurations.
  */
 export const isValidTheme = (value: string | null): value is Theme => {
   if (!value) return false;
@@ -36,7 +33,6 @@ export const isValidTheme = (value: string | null): value is Theme => {
 
 /**
  * Safe consumer hook providing direct type-safe access to the global active theme context space.
- * Throws a descriptive application exception error when evaluated outside a structurally sound provider tree boundary.
  */
 export function useTheme(): ThemeContextType {
   const context = useContext(ThemeContext);

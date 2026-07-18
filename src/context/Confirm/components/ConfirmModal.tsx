@@ -5,7 +5,6 @@ import { useFocusTrap } from '@/hooks/useFocusTrap';
 /**
  * Structural communication contract defining all data properties
  * required to render the global confirmation interaction dialog window.
- * Features mandatory property documentation layout specifications above every signature field.
  */
 interface ConfirmModalProps {
   /** Reactive state flag determining if the overlay view matrix is visible */
@@ -39,7 +38,6 @@ const CONFIRM_BUTTON_VARIANTS = {
 /**
  * Universal Shared Asynchronous Confirm Modal Component.
  * Integrates an abstract custom focus trap utility hook to enforce perfect digital accessibility.
- * Embeds utility topography classes directly into the JSX stream to support utility-first isolation.
  */
 export function ConfirmModal({
   isOpen,
@@ -50,8 +48,8 @@ export function ConfirmModal({
   onConfirm,
   onClose,
   isDanger = false,
-}: ConfirmModalProps) {
-  const { firstRef, secondRef, thirdRef } = useFocusTrap({ isOpen, onClose });
+}: ConfirmModalProps): React.JSX.Element {
+  const { containerRef } = useFocusTrap({ isOpen, onClose });
   const severityKey = isDanger ? 'danger' : 'standard';
 
   return (
@@ -67,6 +65,7 @@ export function ConfirmModal({
           />
 
           <motion.div
+            ref={containerRef}
             role="dialog"
             aria-modal="true"
             aria-labelledby="modal-title"
@@ -78,10 +77,9 @@ export function ConfirmModal({
             className="relative w-full max-w-md rounded-2xl border border-slate-200 bg-white p-6 shadow-xl dark:border-slate-800 dark:bg-slate-900 transition-colors duration-200 z-10"
           >
             <button
-              ref={firstRef}
               type="button"
               onClick={onClose}
-              className="absolute top-4 right-4 text-slate-400 hover:text-slate-600 dark:hover:text-slate-300 focus:outline-none focus-visible:ring-2 focus-visible:ring-slate-500 rounded-lg transition-colors cursor-pointer"
+              className="absolute top-4 right-4 text-slate-400 hover:text-slate-600 dark:hover:text-slate-300 focus-visible:ring-2 focus-visible:ring-slate-500 rounded-lg transition-colors cursor-pointer"
               aria-label="Close dialog"
             >
               <X aria-hidden="true" className="h-4 w-4" />
@@ -110,19 +108,17 @@ export function ConfirmModal({
 
             <div className="mt-6 flex flex-col-reverse gap-2 sm:flex-row sm:justify-end">
               <button
-                ref={secondRef}
                 type="button"
                 onClick={onClose}
-                className="rounded-xl border border-slate-200 px-4 py-2 text-sm font-semibold text-slate-600 hover:bg-slate-50 focus:outline-none focus-visible:ring-2 focus-visible:ring-slate-500 focus-visible:ring-offset-2 dark:border-slate-800 dark:text-slate-400 dark:hover:bg-slate-800 dark:focus-visible:ring-offset-slate-900 transition-all cursor-pointer"
+                className="rounded-xl border border-slate-200 px-4 py-2 text-sm font-semibold text-slate-600 hover:bg-slate-50 focus-visible:ring-2 focus-visible:ring-slate-500 focus-visible:ring-offset-2 dark:border-slate-800 dark:text-slate-400 dark:hover:bg-slate-800 dark:focus-visible:ring-offset-slate-900 transition-all cursor-pointer"
               >
                 {cancelLabel}
               </button>
 
               <button
-                ref={thirdRef}
                 type="button"
                 onClick={onConfirm}
-                className={`rounded-xl px-4 py-2 text-sm font-semibold text-white shadow-md focus:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 dark:focus-visible:ring-offset-slate-900 transition-all cursor-pointer ${CONFIRM_BUTTON_VARIANTS[severityKey]}`}
+                className={`rounded-xl px-4 py-2 text-sm font-semibold text-white shadow-md focus-visible:ring-2 focus-visible:ring-offset-2 dark:focus-visible:ring-offset-slate-900 transition-all cursor-pointer ${CONFIRM_BUTTON_VARIANTS[severityKey]}`}
               >
                 {confirmLabel}
               </button>

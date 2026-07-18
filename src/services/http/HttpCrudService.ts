@@ -9,7 +9,7 @@ import type { RetryOptions, QueryFilters } from '@/types/api';
  * HTTP operations like creation, updates, and records removal.
  */
 export interface HttpTransactionOptions {
-  /** Standard web API abort signal utilized to cancel the ongoing network transaction */
+  /** Connects mid-flight payload mutations to global timeout trees or explicit component eviction hooks */
   readonly signal?: AbortSignal;
 }
 
@@ -18,7 +18,7 @@ export interface HttpTransactionOptions {
  */
 export abstract class HttpCrudService<T, TPayload> extends HttpBaseService {
   /**
-   * Fetches a paginated slice of model entities paired with dynamic server-side filters.
+   * Resolves structurally paginated queries by mapping complex local object graphs into safe URL query streams.
    */
   async getAll(
     page: number,
@@ -34,6 +34,7 @@ export abstract class HttpCrudService<T, TPayload> extends HttpBaseService {
     } = retryOptions;
 
     const searchParams = new URLSearchParams();
+
     searchParams.append('page', String(page));
     searchParams.append('limit', String(limit));
 
@@ -57,7 +58,6 @@ export abstract class HttpCrudService<T, TPayload> extends HttpBaseService {
           }),
         retries,
         delay,
-        this.constructor.name,
         signal ?? undefined,
         shouldRetryRequest,
         maxDelay
@@ -68,7 +68,7 @@ export abstract class HttpCrudService<T, TPayload> extends HttpBaseService {
   }
 
   /**
-   * Requests a singular system record matched by its unique resource identifier.
+   * Resolves structural configuration profiles for separate, isolated entities matching a single primary identifier.
    */
   async getById(id: string, retryOptions: RetryOptions = {}): Promise<T> {
     const {
@@ -85,7 +85,6 @@ export abstract class HttpCrudService<T, TPayload> extends HttpBaseService {
         () => this.request<T>(targetUrl, { signal: signal ?? undefined }),
         retries,
         delay,
-        this.constructor.name,
         signal ?? undefined,
         shouldRetryRequest,
         maxDelay
@@ -99,7 +98,7 @@ export abstract class HttpCrudService<T, TPayload> extends HttpBaseService {
   }
 
   /**
-   * Dispatches a POST action to save a completely fresh schema payload to the remote system.
+   * Commits fresh data models to remote persistence stores.
    */
   async create(
     payload: TPayload,
@@ -117,7 +116,7 @@ export abstract class HttpCrudService<T, TPayload> extends HttpBaseService {
   }
 
   /**
-   * Dispatches a PUT action to totally override an existing entity state.
+   * Enforces complete idempotency constraints by entirely overwriting target schemas.
    */
   async update(
     id: string,
@@ -139,7 +138,7 @@ export abstract class HttpCrudService<T, TPayload> extends HttpBaseService {
   }
 
   /**
-   * Dispatches a PATCH action to apply fine-grained updates on a payload subset.
+   * Optimizes ingress data traffic flows by patching partial delta field variations.
    */
   async patch(
     id: string,
@@ -158,7 +157,7 @@ export abstract class HttpCrudService<T, TPayload> extends HttpBaseService {
   }
 
   /**
-   * Dispatches a DELETE action to wipe a targeted server resource out of the system.
+   * Evicts resource allocations from server clusters and dispatches cascade cache purges.
    */
   async delete(id: string, options?: HttpTransactionOptions): Promise<T> {
     try {

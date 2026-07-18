@@ -6,7 +6,6 @@ import type { AppMode } from './types/mode';
 /**
  * Defines the AppMode context payload structure, including the current mode,
  * mode switch callback, and loading state.
- * Features mandatory property documentation layout specifications above every signature field.
  */
 export interface AppModeContextType {
   /** The current active application paradigm architecture execution strategy mode */
@@ -19,8 +18,6 @@ export interface AppModeContextType {
 
 /**
  * React context storing the active application mode state and modifier callbacks.
- * The initial undefined default value enforces usage within an AppModeProvider.
- * Documented strictly as plain textual engineering prose entirely free from descriptor tags.
  */
 export const AppModeContext = createContext<AppModeContextType | undefined>(
   undefined
@@ -40,7 +37,6 @@ export const isValidAppMode = (value: string | null): value is AppMode => {
 /**
  * Safe consumer hook extracting active context data from AppModeContext.
  * Throws a descriptive exception error when executed outside of an active AppModeProvider tree boundary.
- * Eliminates runtime null checks for call sites by guaranteeing a defined state contract payload.
  */
 export function useAppMode(): AppModeContextType {
   const context = useContext(AppModeContext);

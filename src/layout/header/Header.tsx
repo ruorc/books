@@ -9,7 +9,7 @@ import { ThemeSelector } from './components/ThemeSelector';
  * Pure stable styling engine for generic navigation links.
  */
 const getLinkStyles = ({ isActive }: { readonly isActive: boolean }): string =>
-  `text-sm font-semibold transition-colors duration-200 focus:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500 rounded-lg px-2 py-1 ${
+  `text-sm font-semibold transition-colors duration-200 focus-visible:ring-2 focus-visible:ring-indigo-500 rounded-lg px-2 py-1 ${
     isActive
       ? 'text-indigo-600 dark:text-indigo-400 cursor-default pointer-events-none'
       : 'text-slate-600 hover:text-slate-900 dark:text-slate-400 dark:hover:text-slate-50 cursor-pointer'
@@ -19,7 +19,7 @@ const getLinkStyles = ({ isActive }: { readonly isActive: boolean }): string =>
  * Pure stable styling engine for the brand logo block.
  */
 const getLogoStyles = ({ isActive }: { readonly isActive: boolean }): string =>
-  `flex items-center gap-2 text-slate-900 dark:text-slate-50 font-bold text-lg tracking-tight focus:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500 rounded-lg p-1 ${
+  `flex items-center gap-2 text-slate-900 dark:text-slate-50 font-bold text-lg tracking-tight focus-visible:ring-2 focus-visible:ring-indigo-500 rounded-lg p-1 ${
     isActive ? 'cursor-default pointer-events-none' : 'cursor-pointer'
   }`;
 
@@ -42,9 +42,8 @@ const handlePreventActiveClick = (
 /**
  * Global Header Component rendering the primary application navigation bar.
  * Handles configuration switches for application theme selection and core runtime paradigm engines.
- * Manages sticky positioning layout, backdrop blurs, responsive utility menus, and strict screen reader contexts.
  */
-export const Header: React.FC = () => {
+export const Header = (): React.JSX.Element => {
   const { mode, setMode, isModeLoading } = useAppMode();
 
   return (

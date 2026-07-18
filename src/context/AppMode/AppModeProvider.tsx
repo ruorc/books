@@ -1,11 +1,4 @@
-import {
-  useEffect,
-  useState,
-  useRef,
-  useMemo,
-  useCallback,
-  type ReactNode,
-} from 'react';
+import { useEffect, useState, useRef, type ReactNode } from 'react';
 import {
   MODE_KEY,
   DEFAULT_MODE,
@@ -26,11 +19,11 @@ interface AppModeProviderProps {
 /**
  * Global application paradigm state coordinator provider component.
  * Restores persisted architecture configuration profiles from local storage dynamically upon initialization.
- * Introduces synthetic debounced transition windows to prevent micro-frontend runtime trashing.
- * Manages atomic lifecycle refs to shield asynchronous state dispatches against memory leakage.
- * Fully optimized under React 19 context rendering constraints and free from tag descriptors.
+ * Introduces synthetic debounced transition windows to manage runtime simulation switches safely.
  */
-export function AppModeProvider({ children }: AppModeProviderProps) {
+export function AppModeProvider({
+  children,
+}: AppModeProviderProps): React.JSX.Element {
   const [mode, setModeState] = useState<AppMode>(() => {
     const savedMode = localStorage.getItem(MODE_KEY);
 
@@ -57,36 +50,30 @@ export function AppModeProvider({ children }: AppModeProviderProps) {
     localStorage.setItem(MODE_KEY, mode);
   }, [mode]);
 
-  const setMode = useCallback(
-    (newMode: AppMode) => {
-      if (newMode === mode || isModeLoading) return;
+  const setMode = (newMode: AppMode): void => {
+    if (newMode === mode || isModeLoading) return;
 
-      if (timeoutRef.current) {
-        clearTimeout(timeoutRef.current);
+    if (timeoutRef.current) {
+      clearTimeout(timeoutRef.current);
+    }
+
+    setIsModeLoading(true);
+
+    timeoutRef.current = setTimeout(() => {
+      if (isMountedRef.current) {
+        setModeState(newMode);
+        setIsModeLoading(false);
       }
 
-      setIsModeLoading(true);
+      timeoutRef.current = null;
+    }, MODE_SWITCH_DELAY);
+  };
 
-      timeoutRef.current = setTimeout(() => {
-        if (isMountedRef.current) {
-          setModeState(newMode);
-          setIsModeLoading(false);
-        }
-
-        timeoutRef.current = null;
-      }, MODE_SWITCH_DELAY);
-    },
-    [mode, isModeLoading]
-  );
-
-  const contextValue = useMemo(
-    () => ({
-      mode,
-      setMode,
-      isModeLoading,
-    }),
-    [mode, setMode, isModeLoading]
-  );
+  const contextValue = {
+    mode,
+    setMode,
+    isModeLoading,
+  };
 
   return <AppModeContext value={contextValue}>{children}</AppModeContext>;
 }

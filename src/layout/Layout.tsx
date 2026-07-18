@@ -15,11 +15,9 @@ import { Footer } from './Footer/Footer';
 /**
  * Root Application Layout Wrapper Component establishing the system frame scaffolding.
  * Orchestrates global viewport grids, sticky navigation headers, and flexible footer positioning.
- * Monitors mutations inside user interface style contexts and architecture paradigms reactively.
- * Leverages local persistence references to dispatch transient status tracking push alerts
- * via the global notifications system safely without inducing redundant state cycle drops.
+ * Dispatches synchronization push notifications when application rendering parameters or visual themes change.
  */
-export const Layout: React.FC = () => {
+export const Layout = (): React.JSX.Element => {
   const { isModeLoading, mode } = useAppMode();
   const { theme } = useTheme();
   const { showSnack } = useSnack();

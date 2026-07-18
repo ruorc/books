@@ -1,4 +1,4 @@
-import { type ComponentType, type ReactNode } from 'react';
+import { type ComponentType } from 'react';
 
 /**
  * Structural contract defining properties accepted by theme and engine icons.
@@ -34,7 +34,7 @@ export function AboutCard({
   description,
   icon: Icon,
   iconColorClass,
-}: AboutCardProps): ReactNode {
+}: AboutCardProps): React.JSX.Element {
   return (
     <div className="flex items-start gap-4 rounded-2xl border border-slate-200 bg-white p-5 transition-colors duration-200 dark:border-slate-800 dark:bg-slate-900/50">
       <div className={`rounded-xl p-3 shrink-0 ${iconColorClass}`}>

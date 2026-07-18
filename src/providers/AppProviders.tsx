@@ -16,9 +16,10 @@ interface AppProvidersProps {
 /**
  * Unified application infrastructure root coordinator.
  * Composes all global context domains into a singular flat component node.
- * Documented strictly as plain textual engineering prose entirely free from descriptor tags.
  */
-export function AppProviders({ children }: AppProvidersProps) {
+export function AppProviders({
+  children,
+}: AppProvidersProps): React.JSX.Element {
   return (
     <AppModeProvider>
       <ThemeProvider>

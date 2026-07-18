@@ -1,10 +1,15 @@
-import { useId, type ReactNode } from 'react';
+import { useId } from 'react';
 import { Cpu } from 'lucide-react';
 
 const TECH_STACK = [
   {
     name: 'React 19',
     className: 'border-sky-500/20 bg-sky-500/10 text-sky-600 dark:text-sky-400',
+  },
+  {
+    name: 'React Compiler',
+    className:
+      'border-teal-500/20 bg-teal-500/10 text-teal-600 dark:text-teal-400',
   },
   {
     name: 'TypeScript',
@@ -19,7 +24,7 @@ const TECH_STACK = [
   {
     name: 'Tailwind CSS v4',
     className:
-      'border-teal-500/20 bg-teal-500/10 text-teal-600 dark:text-teal-400',
+      'border-neutral-500/20 bg-neutral-500/10 text-slate-600 dark:text-slate-400',
   },
   {
     name: 'React Router v7',
@@ -41,7 +46,7 @@ const TECH_STACK = [
  * Presentation layout view displaying the foundational engineering stack.
  * Renders a responsive wrapped grid matrix of verified framework badges.
  */
-export function AboutTechStack(): ReactNode {
+export function AboutTechStack(): React.JSX.Element {
   const headingId = useId();
 
   return (

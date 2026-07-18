@@ -1,11 +1,4 @@
-import {
-  useEffect,
-  useLayoutEffect,
-  useState,
-  useMemo,
-  useCallback,
-  type ReactNode,
-} from 'react';
+import { useEffect, useLayoutEffect, useState, type ReactNode } from 'react';
 import { THEME_KEY, DEFAULT_THEME, THEMES } from './constants/themeConstants';
 import { ThemeContext, isValidTheme } from './ThemeContext';
 
@@ -22,9 +15,10 @@ interface ThemeProviderProps {
 /**
  * Context Provider encapsulating color palette theme management, hardware preferences, and storage tracking.
  * Restores persisted configurations, listens to operating system media preferences, and synchronizes cross-tab events.
- * Fully optimized under React 19 context rendering constraints and free from tag descriptors.
  */
-export function ThemeProvider({ children }: ThemeProviderProps) {
+export function ThemeProvider({
+  children,
+}: ThemeProviderProps): React.JSX.Element {
   const [theme, setThemeState] = useState<Theme>(() => {
     const saved = localStorage.getItem(THEME_KEY);
 
@@ -75,20 +69,17 @@ export function ThemeProvider({ children }: ThemeProviderProps) {
     return () => window.removeEventListener('storage', handleStorageChange);
   }, []);
 
-  const setTheme = useCallback((newTheme: Theme) => {
+  const setTheme = (newTheme: Theme): void => {
     setThemeState((prevTheme) =>
       newTheme === prevTheme ? prevTheme : newTheme
     );
-  }, []);
+  };
 
-  const contextValue = useMemo(
-    () => ({
-      theme,
-      setTheme,
-      isDark,
-    }),
-    [theme, setTheme, isDark]
-  );
+  const contextValue = {
+    theme,
+    setTheme,
+    isDark,
+  };
 
   return <ThemeContext value={contextValue}>{children}</ThemeContext>;
 }

@@ -2,20 +2,17 @@ const PROJECT_TOKEN = import.meta.env.VITE_MOCKAPI_PROJECT_TOKEN || '';
 const API_PREFIX = import.meta.env.VITE_MOCKAPI_API_PREFIX || '';
 
 if (!PROJECT_TOKEN) {
-  console.warn(
-    'Warning: Missing mandatory VITE_MOCKAPI_PROJECT_TOKEN in your .env file! API features will fail.'
+  throw new Error(
+    'Critical infrastructure error: Missing mandatory VITE_MOCKAPI_PROJECT_TOKEN in environment configuration.'
   );
 }
 
-const computedBaseUrl = PROJECT_TOKEN
-  ? `https://${PROJECT_TOKEN}.mockapi.io`
-  : 'https://fallback-token.mockapi.io';
+const computedBaseUrl = `https://${PROJECT_TOKEN}.mockapi.io`;
 
 /**
  * Universal endpoint resolution helper that combines environment prefixes and route segments.
  * Uses native Web API URL pathname mutations to guarantee slash normalization and block
  * protocol-relative URL injection exploits during initialization workflows.
- * Accepts the baseline platform string path, raw prefix token, and specific endpoint segment.
  */
 const resolveEndpoint = (
   basePath: string,

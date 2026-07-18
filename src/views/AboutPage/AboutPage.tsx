@@ -18,11 +18,11 @@ const PALETTE_ICON_COLORS = {
 } as const;
 
 /**
- * Dashboard Runtime Status View Component rendering the core application summary page.
- * Manages reactive evaluation of the visual style preferences and rendering strategies.
- * Provides high-density engineering prose documentation strictly free from any parameter tags.
+ * Technical demonstration index page.
+ * Compares reactive rendering behaviors, architectural separation rules,
+ * and tracks environment variables configurations in real-time.
  */
-export const AboutPage: React.FC = () => {
+export const AboutPage = (): React.JSX.Element => {
   const { mode } = useAppMode();
   const { theme, isDark } = useTheme();
 

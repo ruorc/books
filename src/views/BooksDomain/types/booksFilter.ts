@@ -2,13 +2,12 @@ import {
   FILTER_FIELDS,
   SORT_FIELDS,
   SORT_DIRECTIONS,
-} from '@/views/BooksDomain/constants/booksConstants';
+} from '../constants/booksConstants';
 
 /**
  * Compile-time union type extracted directly from runtime FILTER_FIELDS constants.
  * Resolves strictly to supported model fields permitted for targeted catalog filtration.
  * Used to orchestrate deep-linking and state routing across catalog views.
- * Documented strictly as plain textual prose entirely free from descriptor tags.
  */
 export type BookFilterField =
   (typeof FILTER_FIELDS)[keyof typeof FILTER_FIELDS];
@@ -35,7 +34,6 @@ export type TargetedFiltersState = Readonly<Record<BookFilterField, string>>;
 /**
  * Structured state definition capturing all multidimensional query and sorting metrics.
  * Combines global search primitives, targeted domain field filters, and sorting configurations.
- * Features mandatory property documentation layout specifications above every signature field.
  */
 export interface AdvancedFiltersState extends TargetedFiltersState {
   /** A global plaintext keyword used for matching across all available text attributes */

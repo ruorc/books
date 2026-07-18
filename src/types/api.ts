@@ -2,36 +2,35 @@
  * Structural contract defining configuration rules for automated transaction retry logic.
  */
 export interface RetryOptions {
-  /** The maximum number of automated retry attempts after a failed request */
+  /** Governs defensive network policies when dealing with fragile remote microservices */
   readonly retries?: number;
-  /** The delay duration in milliseconds between consecutive retry attempts */
+  /** Controls exponential or static scheduling intervals between sequential connection attempts */
   readonly delay?: number;
-  /** The maximum delay duration in milliseconds between consecutive retry attempts */
+  /** Prevents throttling penalties by capping maximum timeout intervals during progressive backoff sequences */
   readonly maxDelay?: number;
-  /** An AbortSignal instance allowing the operation to be cancelled mid-flight */
+  /** Connects mid-flight request lifecycles to global timeout trees or explicit view eviction hooks */
   readonly signal?: AbortSignal;
 }
 
 /**
  * Baseline filtration contract hosting default criteria attributes used across network services.
- * Features compile-time model mapping constraints to validate field selection boundaries.
+ * Constrains payload delivery mechanisms to prevent heavy data over-fetching.
  */
 export interface BaseQueryFilters<T = Record<string, unknown>> {
-  /** A plaintext keyword used for global text or title matching queries */
+  /** Matches partial text layout entries across broad non-specific resource descriptors */
   readonly search?: string;
-  /** Indicates favorite items selection matching boolean or serialized storage string states */
+  /** Filters the dataset collection to segment strictly user-bookmarked metadata assets */
   readonly isFavorite?: boolean | string;
-  /** Filters the results by the specific identifier or name of the author */
+  /** Restricts collection query streams to items bound to a singular unique author token */
   readonly author?: string;
-  /** Filters the results by a specific calendar year */
+  /** Constrains historical timeline operations using explicit chronological indexing boundaries */
   readonly year?: string;
-  /** Array of specific entity attributes requested from the backend infrastructure validated against model T */
+  /** Optimizes payload bandwidth by extracting specific database attributes needed for immediate rendering */
   readonly select?: Array<keyof T>;
 }
 
 /**
  * Strict dictionary specification mapping primitive dynamic query indicators.
- * Fully eliminates any usage types to ensure static analysis verification during path formatting.
  */
 export type CustomParams = Record<
   string,
@@ -41,7 +40,6 @@ export type CustomParams = Record<
 /**
  * Universal composite contract for HTTP query parameters filtering operations.
  * Intersects baseline selection fields with flexible primitive signatures securely.
- * Leverages generic structure parameters to maintain type safety down the execution tree.
  */
 export type QueryFilters<T = Record<string, unknown>> = BaseQueryFilters<T> &
   CustomParams;

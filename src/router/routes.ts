@@ -15,14 +15,12 @@ export const ROUTES = {
 /**
  * Type safety helper representing any valid layout route definition template from the ROUTES object.
  * Resolves to the raw path patterns used strictly during route registration.
- * Documented strictly as plain textual prose entirely free from descriptor tags.
  */
 export type AppRoutePattern = (typeof ROUTES)[keyof typeof ROUTES];
 
 /**
  * Dynamic route path utility generators to prevent manual string interpolation across components.
  * Guarantees valid URI pattern outputs for direct application navigation consumption.
- * Documentation features high-density engineering text layout strictly free from descriptor tags.
  */
 export const routeHelpers = {
   /**

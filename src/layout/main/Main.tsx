@@ -13,10 +13,8 @@ interface MainProps {
  * Global Main Content Container Component.
  * Establishes the semantic layout boundary, responsive padding matrices,
  * and maximum structural width limits for all rendered sub-views and routes.
- * Accepts standard React context properties containing layout children nodes.
- * Produces the structured semantic main HTML element wrapper.
  */
-export const Main: React.FC<MainProps> = ({ children }) => {
+export const Main = ({ children }: MainProps): React.JSX.Element => {
   return (
     <main className="mx-auto w-full max-w-7xl grow px-4 py-8 sm:px-6 lg:px-8">
       {children}

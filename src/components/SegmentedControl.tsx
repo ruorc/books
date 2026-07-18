@@ -59,8 +59,7 @@ const THEME_VARIANTS = {
 
 /**
  * Universal accessible navigation segmented interaction component.
- * Manages spring-animated option highlighting states, handles keyboard arrow focus matrices
- * transparently, and isolates layout states safely under React 19 execution targets.
+ * Manages spring-animated option highlighting states and handles keyboard arrow focus matrices.
  */
 export function SegmentedControl<T extends string>({
   id,
@@ -69,7 +68,7 @@ export function SegmentedControl<T extends string>({
   onChange,
   variant = 'system',
   isLoading = false,
-}: SegmentedControlProps<T>) {
+}: SegmentedControlProps<T>): React.JSX.Element {
   const buttonRefs = useRef<Map<T, HTMLButtonElement | null>>(new Map());
 
   const handleKeyDown = (e: KeyboardEvent<HTMLDivElement>) => {
@@ -82,10 +81,12 @@ export function SegmentedControl<T extends string>({
         case 'ArrowRight':
         case 'ArrowDown':
           e.preventDefault();
+
           return (currentIndex + 1) % options.length;
         case 'ArrowLeft':
         case 'ArrowUp':
           e.preventDefault();
+
           return (currentIndex - 1 + options.length) % options.length;
         default:
           return -1;
@@ -103,6 +104,7 @@ export function SegmentedControl<T extends string>({
 
       setTimeout(() => {
         const nextButton = buttonRefs.current.get(nextOption.id);
+
         nextButton?.focus();
       }, 0);
     }
@@ -112,7 +114,9 @@ export function SegmentedControl<T extends string>({
     isActive: boolean
   ): keyof typeof BUTTON_STATE_STYLES => {
     if (isActive) return 'active';
+
     if (isLoading) return 'loading';
+
     return 'idle';
   };
 
@@ -154,7 +158,7 @@ export function SegmentedControl<T extends string>({
             onClick={() => {
               if (!isActive) onChange(opt.id);
             }}
-            className={`relative flex items-center gap-2 rounded-lg px-3 py-1.5 text-sm font-medium transition-colors focus-visible:ring-2 focus-visible:ring-offset-2 dark:focus-visible:ring-offset-slate-800 focus:outline-none z-10 ${activeTheme.button} ${activeTextOverride}`}
+            className={`relative flex items-center gap-2 rounded-lg px-3 py-1.5 text-sm font-medium transition-colors focus-visible:ring-2 focus-visible:ring-offset-2 dark:focus-visible:ring-offset-slate-800 z-10 ${activeTheme.button} ${activeTextOverride}`}
           >
             {isActive && (
               <motion.span

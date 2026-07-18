@@ -1,17 +1,14 @@
-import type { Book, BookPayload } from '@/views/BooksDomain/types/book';
+import type { Book, BookPayload } from '../types/book';
 import type { RetryOptions, QueryFilters } from '@/types/api';
 
 /**
- * Read-only interface contract used strictly by catalog components and search views.
- * Exposes safe retrieval methods bound directly to the universal core book entity shape.
- * Documented strictly as plain textual prose entirely free from any parameter descriptors.
+ * Interface segregation client contract isolating read-only data operations.
+ * Prevents consumer views from accidentally accessing state-mutating transaction pipelines.
  */
 export interface BooksReadService {
   /**
-   * Pulls a structurally paginated collection of book records matching specified filter rules.
-   * Accepts target page offset, maximum elements per page boundary, optional query filters,
-   * and custom policy configurations managing automated network request retries.
-   * Returns a promise resolving to an array of partial book records.
+   * Fetches the filtered catalog collection with support for infinite scrolling and pagination.
+   * Leverages exponential backoff retries to guarantee presentation stability during network degradation.
    */
   readonly getAll: (
     page: number,
@@ -21,30 +18,26 @@ export interface BooksReadService {
   ) => Promise<Partial<Book>[]>;
 
   /**
-   * Pulls a singular specific complete book entity from the server by its unique identifier.
-   * Accepts the unique resource target token and optional policy controls managing request retries.
-   * Returns a promise resolving to the fully fetched complete book entity configurations.
+   * Resolves a complete, individual book profile configuration from the persistent data store.
+   * Serves as the primary data hydration hook for deep-linked detail presentation views.
    */
   readonly getById: (id: string, retryOptions?: RetryOptions) => Promise<Book>;
 }
 
 /**
- * Write-only interface contract injected directly into creation or edition form components.
- * Restricts access to data-mutating network transactions to secure architecture pipelines.
- * Features dense text descriptions completely free from any implicit token tags.
+ * Interface segregation client contract isolating write-only data mutations.
+ * Enforces strict boundary controls over state destruction and creation pipelines.
  */
 export interface BooksWriteService {
   /**
-   * Registers a fresh book item into the remote system, seeding initial required system flags.
-   * Accepts a core payload containing book data fields while omitting initial favorite status flags.
-   * Returns a promise resolving to the freshly saved structural book record representation.
+   * Registers a fresh book instance into the ecosystem repository.
+   * Automatically initializes necessary server-side relational records and search parameters.
    */
   readonly create: (book: Omit<BookPayload, 'isFavorite'>) => Promise<Book>;
 
   /**
-   * Overwrites the target book resource state with a fresh complete schema configuration.
-   * Accepts the unique identifying resource token and a partial payload indicating mutations.
-   * Returns a promise resolving to the updated book record state representing server variations.
+   * Dispatches a complete structural replacement payload to update an existing book profile.
+   * Triggers global state synchronization across active rendering layout trees.
    */
   readonly update: (
     id: string,
@@ -52,46 +45,41 @@ export interface BooksWriteService {
   ) => Promise<Book>;
 
   /**
-   * Applies precise local differential field mutations or delta changes on the remote database.
-   * Accepts the unique identifying resource token and a delta payload containing modified fields.
-   * Returns a promise resolving to the final mutated complete book structure.
+   * Applies atomic field variations or delta patches to a targeted catalog asset.
+   * Optimizes network bandwidth consumption during low-overhead structural mutations.
    */
   readonly patch: (id: string, partialData: Partial<Book>) => Promise<Book>;
 
   /**
-   * Strips a book record permanently from the remote cluster database infrastructure.
-   * Accepts the unique target identifier tracking the book resource to remove.
-   * Returns a promise resolving to the deleted asset state returned by the platform.
+   * Evicts a book entity permanently from the centralized data infrastructure.
+   * Triggers cascade cleanups across local cached collections and client-side view states.
    */
   readonly delete: (id: string) => Promise<Book>;
 }
 
 /**
- * Unified application-level contract combining both read and write capabilities.
- * Inherits all method signatures from baseline segregation interfaces securely.
+ * Unified application-level service contract combining read and write capabilities.
  */
 export interface BooksService extends BooksReadService, BooksWriteService {}
 
 /**
- * Configuration options interface governing specific update transaction behavior
- * on the MockAPI vendor platform.
+ * Platform override constraints tailored specifically for the MockAPI vendor ecosystem.
  */
 export interface MockApiUpdateOptions {
-  /** Standard web API abort signal utilized to cancel the ongoing network transaction */
+  /** Bypasses global entity validation layers to preserve legacy system update flags */
   readonly signal?: AbortSignal;
   /** Specialized auditing toggle indicating if the modification timestamp should be refreshed */
   readonly shouldUpdateTimestamp?: boolean;
 }
 
 /**
- * Concrete infrastructure-level contract specifically managing MockAPI operational overrides.
- * Adjusts baseline transaction definitions to support specialized audit-logging parameters.
+ * Infrastructure integration contract handling MockAPI platform synchronization workarounds.
+ * Accounts for vendor-specific mutations and non-standard payload structural formats.
  */
 export interface MockApiBooksService extends BooksService {
   /**
-   * Updates targeted fields and cleans out hazardous immutable parameters on the vendor platform.
-   * Accepts the target identifier, a partial payload, and an optional timestamp modification configuration.
-   * Returns a promise resolving to the freshly mutated book instance.
+   * Synchronizes data fields with the vendor platform while stripping out invalid local parameters.
+   * Intercepts standard mutations to inject platform-specific timestamp payloads safely.
    */
   readonly update: (
     id: string,

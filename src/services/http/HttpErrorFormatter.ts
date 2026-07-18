@@ -19,6 +19,7 @@ export async function formatServerError(response: Response): Promise<string> {
   } catch {
     try {
       const textFallback = await response.text();
+
       return textFallback
         ? `HTTP ${response.status}: ${textFallback}`
         : defaultMessage;

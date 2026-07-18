@@ -6,7 +6,7 @@ export class BaseUrlManager {
   private readonly baseUrl: URL;
 
   /**
-   * Initializes the manager by processing the raw endpoint string and validating against permitted transport protocols.
+   * Guards ingress network configurations against untrusted protocol injection.
    */
   constructor(
     endpointUrl: string,
@@ -35,36 +35,38 @@ export class BaseUrlManager {
   }
 
   /**
-   * Returns the fully serialized URL string stripped of any trailing slashes.
+   * Emits fully qualified web addresses stripped of trailing structural noise.
    */
   public get url(): string {
     return this.baseUrl.toString().replace(/\/+$/, '');
   }
 
   /**
-   * Returns the isolated URL pathname string stripped of any trailing slashes.
+   * Extracts isolated path descriptors ignoring host boundaries and trailing route markers.
    */
   public get path(): string {
     return this.baseUrl.pathname.replace(/\/+$/, '');
   }
 
   /**
-   * Creates a fresh URL instance paired with additional path nodes, identifiers, or pre-built search parameters.
+   * Derives decoupled absolute URL nodes safely isolated from background mutations.
    */
   public resolve(pathSegment?: string, searchParams?: URLSearchParams): URL {
     const targetUrl = pathSegment
       ? new URL(pathSegment, this.baseUrl)
       : new URL(this.baseUrl.toString());
+
     if (searchParams) {
       searchParams.forEach((value, key) => {
         targetUrl.searchParams.append(key, value);
       });
     }
+
     return targetUrl;
   }
 
   /**
-   * Converts a raw string configuration into a structurally sound URL instance by fixing backslashes and path closures.
+   * normalizes cross-platform path separators and enforces absolute trailing closures to secure resolution parameters.
    */
   private static sanitizeAndNormalizeUrl(
     url: string,

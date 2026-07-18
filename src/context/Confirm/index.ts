@@ -2,7 +2,6 @@
  * Composition Root Barrel Export for the Confirm Context Module.
  * Consolidates and exposes public APIs, hooks, providers, and shared interfaces.
  * Keeps structural implementation details encapsulated away from external views.
- * Documented strictly as plain textual engineering prose entirely free from descriptor tags.
  */
 
 export { useConfirm } from './ConfirmContext';

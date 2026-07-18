@@ -1,11 +1,4 @@
-import {
-  useState,
-  useCallback,
-  useMemo,
-  useEffect,
-  useRef,
-  type ReactNode,
-} from 'react';
+import { useState, useEffect, useRef, type ReactNode } from 'react';
 import { AnimatePresence, motion } from 'framer-motion';
 import { CheckCircle2, AlertCircle, Info, X } from 'lucide-react';
 import { SNACKS, SNACK_DISPLAY_DURATION } from './constants/snackConstants';
@@ -52,9 +45,10 @@ const SNACK_ICON_VARIANTS = {
  * Context Provider managing a coordinated floating notification alert queue.
  * Restores state tracking arrays and hooks garbage collection micro-tasks via timeouts.
  * Handles automatic background cleanup and safe runtime unique identifier seeding.
- * Fully optimized under React 19 context rendering constraints and free from tag descriptors.
  */
-export function SnackProvider({ children }: SnackProviderProps) {
+export function SnackProvider({
+  children,
+}: SnackProviderProps): React.JSX.Element {
   const [snacks, setSnacks] = useState<readonly SnackItem[]>([]);
 
   const timersRef = useRef<Map<string, ReturnType<typeof setTimeout>>>(
@@ -70,7 +64,7 @@ export function SnackProvider({ children }: SnackProviderProps) {
     };
   }, []);
 
-  const removeSnack = useCallback((id: string) => {
+  const removeSnack = (id: string): void => {
     setSnacks((prev) => prev.filter((snack) => snack.id !== id));
 
     const pendingTimer = timersRef.current.get(id);
@@ -79,24 +73,21 @@ export function SnackProvider({ children }: SnackProviderProps) {
       clearTimeout(pendingTimer);
       timersRef.current.delete(id);
     }
-  }, []);
+  };
 
-  const showSnack = useCallback(
-    (message: string, type: Snack = SNACKS.INFO) => {
-      const id = generateRuntimeId();
+  const showSnack = (message: string, type: Snack = SNACKS.INFO): void => {
+    const id = generateRuntimeId();
 
-      setSnacks((prev) => [...prev, { id, message, type }]);
+    setSnacks((prev) => [...prev, { id, message, type }]);
 
-      const timer = setTimeout(() => {
-        removeSnack(id);
-      }, SNACK_DISPLAY_DURATION);
+    const timer = setTimeout(() => {
+      removeSnack(id);
+    }, SNACK_DISPLAY_DURATION);
 
-      timersRef.current.set(id, timer);
-    },
-    [removeSnack]
-  );
+    timersRef.current.set(id, timer);
+  };
 
-  const contextValue = useMemo(() => ({ showSnack }), [showSnack]);
+  const contextValue = { showSnack };
 
   return (
     <SnackContext value={contextValue}>
@@ -136,7 +127,7 @@ export function SnackProvider({ children }: SnackProviderProps) {
                 <button
                   type="button"
                   onClick={() => removeSnack(snack.id)}
-                  className="shrink-0 text-slate-400 hover:text-slate-600 dark:hover:text-slate-300 focus:outline-none focus-visible:ring-2 focus-visible:ring-slate-400 rounded-lg transition-colors cursor-pointer"
+                  className="shrink-0 text-slate-400 hover:text-slate-600 dark:hover:text-slate-300 focus-visible:ring-2 focus-visible:ring-slate-400 rounded-lg transition-colors cursor-pointer"
                   aria-label="Dismiss notification"
                 >
                   <X aria-hidden="true" className="h-4 w-4" />

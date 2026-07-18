@@ -45,7 +45,8 @@ export abstract class HttpBaseService {
   }
 
   /**
-   * Central core method orchestrating headers injection, token recovery triggers, and timeout barriers.
+   * Dispatches unified network payloads across egress application boundaries.
+   * Intercepts stale authentication signals to transparently trigger credentials recovery tasks before pipeline failure.
    */
   protected async request<R>(
     url: string,
@@ -59,6 +60,7 @@ export abstract class HttpBaseService {
 
     if (this.authInterceptor) {
       const token = await this.authInterceptor.getAccessToken();
+
       if (token) {
         headers.set('Authorization', `Bearer ${token}`);
       }
@@ -79,6 +81,7 @@ export abstract class HttpBaseService {
 
       if (response.status === 401 && !isRetryAttempt && this.authInterceptor) {
         const isRecovered = await this.authInterceptor.refreshSession();
+
         if (isRecovered) {
           return await this.request<R>(url, options, true);
         }
@@ -87,14 +90,17 @@ export abstract class HttpBaseService {
       throw error;
     } catch (error) {
       if (error instanceof Error && error.name === 'TimeoutError') {
-        throw new Error(`Request timed out after ${NETWORK_CONFIG.TIMEOUT}ms`);
+        throw new Error(`Request timed out after ${NETWORK_CONFIG.TIMEOUT}ms`, {
+          cause: error,
+        });
       }
+
       throw error;
     }
   }
 
   /**
-   * Intercepts errors to log them to the console and applies asynchronous lazy evaluation of server diagnostic logs.
+   * Resolves raw transport crashes and extracts descriptive feedback payloads from upstream diagnostics logs.
    */
   protected async handleError(
     error: unknown,
@@ -115,15 +121,15 @@ export abstract class HttpBaseService {
       errorMessage = error.message;
     }
 
-    console.error(`[${this.constructor.name} Error] ${contextMessage}:`, error);
     return new Error(`${contextMessage}: ${errorMessage}`, { cause: error });
   }
 
   /**
-   * Merges manual runtime triggers and built-in global timeouts using native AbortSignal capabilities.
+   * Combines execution cancellation contexts to enforce absolute resource protection against hanging connections.
    */
   private createTimeoutSignal(userSignal?: AbortSignal): AbortSignal {
     const timeoutSignal = AbortSignal.timeout(NETWORK_CONFIG.TIMEOUT);
+
     return userSignal
       ? AbortSignal.any([userSignal, timeoutSignal])
       : timeoutSignal;

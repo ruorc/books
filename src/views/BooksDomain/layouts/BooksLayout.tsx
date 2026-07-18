@@ -1,5 +1,5 @@
 import { Outlet, ScrollRestoration } from 'react-router-dom';
-import { BooksCatalogProvider } from '@/views/BooksPage/context/BooksCatalogContext';
+import { BooksCatalogProvider } from '../context/BooksCatalogContext';
 
 /**
  * Books Domain Layout Boundary Component.
@@ -9,7 +9,7 @@ import { BooksCatalogProvider } from '@/views/BooksPage/context/BooksCatalogCont
  * browser viewport position logging across all nested components in the books scope.
  * Renders the structured contextual grid boundary enclosing child nested routes via Outlet.
  */
-export const BooksLayout: React.FC = () => {
+export const BooksLayout = (): React.JSX.Element => {
   return (
     <BooksCatalogProvider>
       <ScrollRestoration />
