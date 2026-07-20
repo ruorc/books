@@ -3,7 +3,6 @@ import globals from 'globals';
 import reactHooks from 'eslint-plugin-react-hooks';
 import reactRefresh from 'eslint-plugin-react-refresh';
 import tseslint from 'typescript-eslint';
-import { defineConfig, globalIgnores } from 'eslint/config';
 import eslintConfigPrettier from 'eslint-config-prettier';
 import eslintPluginPrettier from 'eslint-plugin-prettier';
 import stylistic from '@stylistic/eslint-plugin';
@@ -14,25 +13,32 @@ import reactCompiler from 'eslint-plugin-react-compiler';
  * Centered application quality gate pipeline.
  * Synchronizes abstract syntactic controls, type checking, and documentation rules.
  */
-export default defineConfig([
-  globalIgnores(['dist', 'build', 'node_modules', 'agents.md', '.agents/**']),
+export default tseslint.config(
+  {
+    ignores: ['dist', 'build', 'node_modules', 'agents.md', '.agents/**'],
+  },
+
+  js.configs.recommended,
+  ...tseslint.configs.recommended,
+  reactHooks.configs.flat.recommended,
+  jsdoc.configs['flat/recommended-typescript'],
+
   {
     files: ['**/*.{ts,tsx}'],
-    extends: [
-      js.configs.recommended,
-      ...tseslint.configs.recommended,
-      reactHooks.configs.flat.recommended,
-      reactRefresh.configs.vite,
-    ],
     languageOptions: {
       globals: globals.browser,
       parser: tseslint.parser,
+      parserOptions: {
+        projectService: true,
+        tsconfigRootDir: import.meta.dirname,
+      },
     },
     plugins: {
       '@stylistic': stylistic,
       prettier: eslintPluginPrettier,
       jsdoc: jsdoc,
       'react-compiler': reactCompiler,
+      'react-refresh': reactRefresh,
     },
     settings: {
       jsdoc: {
@@ -40,14 +46,24 @@ export default defineConfig([
       },
     },
     rules: {
+      'react-refresh/only-export-components': [
+        'warn',
+        { allowConstantExport: true },
+      ],
+
       'prettier/prettier': [
         'error',
         { endOfLine: 'auto' },
         { usePrettierrc: true },
       ],
 
-      // Restricts raw development logging mechanisms inside system runtime boundaries
-      'no-console': ['error', { allow: ['info'] }],
+      // Restricts raw development logging mechanisms inside system runtime boundaries.
+      // Total lockdown on standard console methods; logging must route via AppLogger.
+      'no-console': 'error',
+
+      // Demands mandatory operation routing inside exception handlers.
+      // Explicitly forbids silent failure states and completely empty catch structures.
+      'no-empty': ['error', { allowEmptyCatch: false }],
 
       // TS-First Documentation Validation (Strict Tagless Mode)
       'jsdoc/require-jsdoc': [
@@ -78,19 +94,26 @@ export default defineConfig([
       // Completely deactivate legacy JS function-level parameters and property validations
       'jsdoc/require-param': 'off',
       'jsdoc/require-param-description': 'off',
+      'jsdoc/require-param-type': 'off',
       'jsdoc/require-returns': 'off',
       'jsdoc/require-returns-description': 'off',
+      'jsdoc/require-returns-type': 'off',
       'jsdoc/require-property': 'off',
       'jsdoc/require-property-description': 'off',
 
       // Enforce TSDoc standard: completely forbid plain JS types in comments
       'jsdoc/no-types': 'error',
 
-      // Strict enforcement of the Tagless Paradigm: block completely all standard tags starting with @
-      'jsdoc/check-tag-names': [
+      // Forbids ALL standard JSDoc/TSDoc tags, forcing developers to write only descriptive text.
+      'jsdoc/no-restricted-tags': [
         'error',
         {
-          definedTags: [],
+          tags: {
+            '*': {
+              message:
+                'Tags are forbidden in Strict Tagless Mode. Use clean markdown text blocks instead.',
+            },
+          },
         },
       ],
 
@@ -110,10 +133,8 @@ export default defineConfig([
     },
   },
 
-  // 1. Turn off all formatting rules that conflict with Prettier first
   eslintConfigPrettier,
 
-  // 2. Apply our custom stylistic rules LAST so they strictly override Prettier's clean-up
   {
     files: ['**/*.{ts,tsx}'],
     rules: {
@@ -143,5 +164,5 @@ export default defineConfig([
         },
       ],
     },
-  },
-]);
+  }
+);
